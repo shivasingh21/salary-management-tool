@@ -1,4 +1,6 @@
+# rubocop:disable Layout/SpaceInsideArrayLiteralBrackets
 require Rails.root.join("lib/json_failure_app")
+require "devise/orm/active_record"
 
 Devise.setup do |config|
   config.mailer_sender = "no-reply@salary-management-tool.local"
@@ -23,3 +25,4 @@ Devise.setup do |config|
     manager.failure_app = JsonFailureApp
   end
 end
+# rubocop:enable Layout/SpaceInsideArrayLiteralBrackets
