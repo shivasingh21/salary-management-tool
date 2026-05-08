@@ -16,22 +16,22 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS", 5) %>
-  host: <%= ENV["DATABASE_HOST"] %>
-  port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
-  username: <%= ENV["DATABASE_USERNAME"] %>
-  password: <%= ENV["DATABASE_PASSWORD"] %>
+  host: <%= Rails.application.credentials.dig(Rails.env.to_sym, :database, :host) || ENV["DATABASE_HOST"] %>
+  port: <%= Rails.application.credentials.dig(Rails.env.to_sym, :database, :port) || ENV.fetch("DATABASE_PORT", 5432) %>
+  username: <%= Rails.application.credentials.dig(Rails.env.to_sym, :database, :username) || ENV["DATABASE_USERNAME"] %>
+  password: <%= Rails.application.credentials.dig(Rails.env.to_sym, :database, :password) || ENV["DATABASE_PASSWORD"] %>
 
 
 development:
   <<: *default
-  database: <%= ENV.fetch("DATABASE_NAME", "salary_management_tool_development") %>
+  database: <%= Rails.application.credentials.dig(:development, :database, :database) || ENV.fetch("DATABASE_NAME", "salary_management_tool_development") %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: <%= ENV.fetch("DATABASE_TEST_NAME", "salary_management_tool_test") %>
+  database: <%= Rails.application.credentials.dig(:test, :database, :database) || ENV.fetch("DATABASE_TEST_NAME", "salary_management_tool_test") %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
