@@ -43,6 +43,7 @@
 # Test and coverage output
 /coverage/
 /.resultset.json
+/spec/examples.txt
 
 # Generated documentation
 /doc/
