@@ -1,4 +1,5 @@
 require Rails.root.join("lib/json_failure_app")
+require "devise/orm/active_record"
 
 Devise.setup do |config|
   config.mailer_sender = "no-reply@salary-management-tool.local"
