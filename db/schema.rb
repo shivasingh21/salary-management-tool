@@ -10,24 +10,40 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_08_141000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_08_142000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
+  create_table "countries", force: :cascade do |t|
+    t.string "name", null: false
+    t.index ["name"], name: "index_countries_on_name", unique: true
+  end
+
+  create_table "departments", force: :cascade do |t|
+    t.string "name", null: false
+    t.index ["name"], name: "index_departments_on_name", unique: true
+  end
+
   create_table "employees", force: :cascade do |t|
     t.boolean "active", default: true, null: false
-    t.string "country", null: false
+    t.bigint "country_id", null: false
     t.datetime "created_at", null: false
-    t.string "department", null: false
-    t.string "job_title", null: false
+    t.bigint "department_id", null: false
+    t.bigint "job_title_id", null: false
     t.date "joining_date", null: false
     t.decimal "salary", precision: 12, scale: 2, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id"
     t.index ["active"], name: "index_employees_on_active_true", where: "(active = true)"
-    t.index ["country"], name: "index_employees_on_country"
-    t.index ["job_title"], name: "index_employees_on_job_title"
+    t.index ["country_id"], name: "index_employees_on_country_id"
+    t.index ["department_id"], name: "index_employees_on_department_id"
+    t.index ["job_title_id"], name: "index_employees_on_job_title_id"
     t.index ["user_id"], name: "index_employees_on_user_id", unique: true, where: "(user_id IS NOT NULL)"
+  end
+
+  create_table "job_titles", force: :cascade do |t|
+    t.string "name", null: false
+    t.index ["name"], name: "index_job_titles_on_name", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -44,5 +60,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_141000) do
     t.index ["jti"], name: "index_users_on_jti", unique: true
   end
 
+  add_foreign_key "employees", "countries"
+  add_foreign_key "employees", "departments"
+  add_foreign_key "employees", "job_titles"
   add_foreign_key "employees", "users"
 end
