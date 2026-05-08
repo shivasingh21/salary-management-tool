@@ -1,6 +1,4 @@
 Rails.application.routes.draw do
-  devise_for :users, skip: :all
-
   namespace :api do
     namespace :v1 do
       get "health", to: "health#show"
