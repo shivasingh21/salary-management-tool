@@ -1,0 +1,59 @@
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Bundler
+/.bundle
+/vendor/bundle
+/vendor/ruby
+
+# Environment
+/.env*
+!/.env.example
+
+# Logs and temp files
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+/node_modules
+/frontend/node_modules
+/frontend/dist
+
+# PID files
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
+# Runtime storage
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+
+# Credentials and local secrets
+/config/*.key
+/config/credentials/*.key
+
+# Test and coverage output
+/coverage/
+/.resultset.json
+
+# Generated documentation
+/doc/
+/yardoc/
+/.yardoc/
+
+# Generated assets
+/public/assets/
+/public/packs/
+/public/packs-test/
+
+# Local database exports
+*.dump
+*.sql
