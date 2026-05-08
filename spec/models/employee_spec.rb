@@ -5,12 +5,12 @@ RSpec.describe Employee, type: :model do
 
   describe "associations" do
     it { is_expected.to belong_to(:user).optional }
+    it { is_expected.to belong_to(:department) }
+    it { is_expected.to belong_to(:job_title) }
+    it { is_expected.to belong_to(:country) }
   end
 
   describe "validations" do
-    it { is_expected.to validate_presence_of(:job_title) }
-    it { is_expected.to validate_presence_of(:department) }
-    it { is_expected.to validate_presence_of(:country) }
     it { is_expected.to validate_presence_of(:salary) }
     it { is_expected.to validate_presence_of(:joining_date) }
     it { is_expected.to validate_numericality_of(:salary).is_greater_than(0) }
@@ -49,9 +49,14 @@ RSpec.describe Employee, type: :model do
   end
 
   describe "scopes" do
-    let!(:active_employee) { create(:employee, active: true, country: "India", job_title: "Engineer") }
-    let!(:inactive_employee) { create(:employee, active: false, country: "India", job_title: "Engineer") }
-    let!(:manager) { create(:employee, active: true, country: "United States", job_title: "Manager") }
+    let(:india) { create(:country, name: "India") }
+    let(:united_states) { create(:country, name: "United States") }
+    let(:engineer_title) { create(:job_title, name: "Engineer") }
+    let(:manager_title) { create(:job_title, name: "Manager") }
+
+    let!(:active_employee) { create(:employee, active: true, country: india, job_title: engineer_title) }
+    let!(:inactive_employee) { create(:employee, active: false, country: india, job_title: engineer_title) }
+    let!(:manager) { create(:employee, active: true, country: united_states, job_title: manager_title) }
 
     it "returns active employees" do
       expect(described_class.active).to contain_exactly(active_employee, manager)
