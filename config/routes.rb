@@ -4,7 +4,10 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get "health", to: "health#show"
+      resources :countries, only: %i[index create destroy]
+      resources :departments, only: %i[index create destroy]
       resources :employees
+      resources :job_titles, only: %i[index create destroy]
 
       namespace :auth do
         post "sign_in", to: "sessions#create"
