@@ -7,9 +7,5 @@ FactoryBot.define do
     salary { 95_000.00 }
     joining_date { Date.current }
     active { true }
-
-    trait :without_user do
-      user { nil }
-    end
   end
 end

@@ -4,7 +4,7 @@ RSpec.describe Employee, type: :model do
   subject(:employee) { build(:employee) }
 
   describe "associations" do
-    it { is_expected.to belong_to(:user).optional }
+    it { is_expected.to belong_to(:user) }
     it { is_expected.to belong_to(:department) }
     it { is_expected.to belong_to(:job_title) }
     it { is_expected.to belong_to(:country) }
@@ -26,12 +26,6 @@ RSpec.describe Employee, type: :model do
 
       expect(employee.full_name).to eq("Maya Patel")
     end
-
-    it "returns an empty string when no user is assigned" do
-      employee.user = nil
-
-      expect(employee.full_name).to eq("")
-    end
   end
 
   describe "#email" do
@@ -39,12 +33,6 @@ RSpec.describe Employee, type: :model do
       employee.user.email = "employee@example.com"
 
       expect(employee.email).to eq("employee@example.com")
-    end
-
-    it "returns nil when no user is assigned" do
-      employee.user = nil
-
-      expect(employee.email).to be_nil
     end
   end
 
