@@ -1,4 +1,8 @@
 #!/usr/bin/env ruby
+if ARGV.first == "server" && ENV["SKIP_FRONTEND"] != "1"
+  exec File.expand_path("dev", __dir__)
+end
+
 APP_PATH = File.expand_path("../config/application", __dir__)
 require_relative "../config/boot"
 require "rails/commands"

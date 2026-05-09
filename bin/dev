@@ -1,2 +1,22 @@
 #!/usr/bin/env ruby
-exec "./bin/rails", "server", *ARGV
+
+ruby_version = File.read(".ruby-version").strip
+rails_command = "source ~/.rvm/scripts/rvm && rvm use #{ruby_version} && ./bin/rails server -p 3001"
+
+processes = [
+  ["Rails API", { "PORT" => "3001", "SKIP_FRONTEND" => "1" }, "bash", "-lc", rails_command],
+  ["Vite", {}, "npm", "run", "dev", "--prefix", "frontend", "--", "--host", "0.0.0.0", "--port", "3000"]
+]
+
+pids = processes.map do |name, env, *command|
+  pid = Process.spawn(env, *command, out: $stdout, err: $stderr)
+  puts "#{name} started with PID #{pid}"
+  pid
+end
+
+trap("INT") do
+  pids.each { |pid| Process.kill("TERM", pid) rescue nil }
+  exit
+end
+
+Process.waitall
