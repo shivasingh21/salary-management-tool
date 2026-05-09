@@ -5,12 +5,39 @@ export async function listDepartments() {
   return response.data;
 }
 
+export async function createDepartment(payload) {
+  const response = await apiClient.post("/departments", { department: payload });
+  return response.data;
+}
+
+export async function deleteDepartment(id) {
+  await apiClient.delete(`/departments/${id}`);
+}
+
 export async function listJobTitles() {
   const response = await apiClient.get("/job_titles");
   return response.data;
 }
 
+export async function createJobTitle(payload) {
+  const response = await apiClient.post("/job_titles", { job_title: payload });
+  return response.data;
+}
+
+export async function deleteJobTitle(id) {
+  await apiClient.delete(`/job_titles/${id}`);
+}
+
 export async function listCountries() {
   const response = await apiClient.get("/countries");
   return response.data;
+}
+
+export async function createCountry(payload) {
+  const response = await apiClient.post("/countries", { country: payload });
+  return response.data;
+}
+
+export async function deleteCountry(id) {
+  await apiClient.delete(`/countries/${id}`);
 }

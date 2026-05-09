@@ -42,12 +42,12 @@ function Employees() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Job Title</TableCell>
-              <TableCell>Department</TableCell>
-              <TableCell>Country</TableCell>
-              <TableCell>Salary</TableCell>
-              <TableCell>Status</TableCell>
+              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Name</TableCell>
+              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Job Title</TableCell>
+              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Department</TableCell>
+              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Country</TableCell>
+              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Salary</TableCell>
+              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

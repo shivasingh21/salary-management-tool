@@ -9,7 +9,7 @@ function AppLayout() {
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
       <Header />
       <Sidebar />
-      <Box component="main" sx={{ flexGrow: 1, ml: { md: `${drawerWidth}px` }, p: { xs: 2, md: 3 } }}>
+      <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 } }}>
         <Toolbar />
         <Outlet />
       </Box>
