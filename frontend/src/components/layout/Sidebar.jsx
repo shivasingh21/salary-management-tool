@@ -1,6 +1,9 @@
 import AddIcon from "@mui/icons-material/Add";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import FlagIcon from "@mui/icons-material/Flag";
 import GroupsIcon from "@mui/icons-material/Groups";
+import WorkIcon from "@mui/icons-material/Work";
+import BusinessIcon from "@mui/icons-material/Business";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
@@ -16,7 +19,9 @@ export const drawerWidth = 264;
 const items = [
   { label: "Dashboard", path: "/dashboard", icon: <DashboardIcon /> },
   { label: "Employees", path: "/employees", icon: <GroupsIcon /> },
-  { label: "Add Employee", path: "/employees/new", icon: <AddIcon /> }
+  { label: "Departments", path: "/departments", icon: <BusinessIcon /> },
+  { label: "Job Titles", path: "/job-titles", icon: <WorkIcon /> },
+  { label: "Countries", path: "/countries", icon: <FlagIcon /> }
 ];
 
 function Sidebar() {
