@@ -4,6 +4,7 @@ RSpec.describe "Api::V1::Insights", type: :request do
   let(:hr_user) { create(:user, :hr) }
   let(:employee_user) { create(:user, :employee) }
   let(:engineering) { create(:department, name: "Engineering") }
+  let(:design_department) { create(:department, name: "Design") }
   let(:india) { create(:country, name: "India") }
   let(:usa) { create(:country, name: "United States") }
   let(:software_engineer) { create(:job_title, name: "Software Engineer") }
@@ -19,9 +20,9 @@ RSpec.describe "Api::V1::Insights", type: :request do
   before do
     create(:employee, department: engineering, country: india, job_title: software_engineer, salary: 40_000)
     create(:employee, department: engineering, country: india, job_title: software_engineer, salary: 80_000)
-    create(:employee, department: engineering, country: india, job_title: designer, salary: 150_000)
+    create(:employee, department: design_department, country: india, job_title: designer, salary: 150_000)
     create(:employee, department: engineering, country: usa, job_title: software_engineer, salary: 250_000)
-    create(:employee, department: engineering, country: usa, job_title: designer, salary: 120_000, active: false)
+    create(:employee, department: design_department, country: usa, job_title: designer, salary: 120_000, active: false)
   end
 
   describe "GET /api/v1/insights/country_salaries" do
@@ -44,6 +45,26 @@ RSpec.describe "Api::V1::Insights", type: :request do
           "max_salary" => "250000.0",
           "avg_salary" => "250000.0",
           "employee_count" => 1
+        }
+      )
+    end
+  end
+
+  describe "GET /api/v1/insights/department_average" do
+    it "returns average salary grouped by department" do
+      get "/api/v1/insights/department_average", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"]).to contain_exactly(
+        {
+          "department" => "Design",
+          "avg_salary" => "150000.0",
+          "employee_count" => 1
+        },
+        {
+          "department" => "Engineering",
+          "avg_salary" => "123333.33",
+          "employee_count" => 3
         }
       )
     end

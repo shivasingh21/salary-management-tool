@@ -10,6 +10,12 @@ module Api
           )
         end
 
+        def department_average
+          render json: Api::V1::InsightsSerializer.department_average(
+            ::Insights::DepartmentAverage.call
+          )
+        end
+
         def job_title_average
           render json: Api::V1::InsightsSerializer.job_title_average(
             ::Insights::JobTitleAverage.call

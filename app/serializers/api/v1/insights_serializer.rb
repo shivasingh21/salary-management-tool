@@ -7,6 +7,10 @@ module Api
         collection(rows)
       end
 
+      def department_average(rows)
+        collection(rows)
+      end
+
       def job_title_average(rows)
         collection(rows)
       end
