@@ -12,7 +12,8 @@ import Typography from "@mui/material/Typography";
 import { useEffect, useMemo, useState } from "react";
 import { getDashboardInsights } from "../api/insights.js";
 import ChartCard from "../components/dashboard/ChartCard.jsx";
-import InsightBarChart from "../components/dashboard/InsightBarChart.jsx";
+import { chartHeightForRows, topChartRows } from "../components/dashboard/chartHelpers.js";
+import InsightHorizontalBarChart from "../components/dashboard/InsightHorizontalBarChart.jsx";
 import InsightMetricCard from "../components/dashboard/InsightMetricCard.jsx";
 import InsightPieChart from "../components/dashboard/InsightPieChart.jsx";
 import SalaryAnalyticsSection from "../components/dashboard/SalaryAnalyticsSection.jsx";
@@ -40,9 +41,7 @@ function formatCompactCurrency(value) {
 }
 
 function topRows(rows, valueKey, limit = 8) {
-  return [...rows]
-    .sort((first, second) => Number(second[valueKey]) - Number(first[valueKey]))
-    .slice(0, limit);
+  return topChartRows(rows, valueKey, limit);
 }
 
 function aggregateJobTitles(rows) {
@@ -124,6 +123,9 @@ function Dashboard() {
       }))
     };
   }, [insights]);
+  const countryChartHeight = chartHeightForRows(chartData.countries);
+  const departmentChartHeight = chartHeightForRows(chartData.departments);
+  const jobTitleChartHeight = chartHeightForRows(chartData.jobTitles);
 
   const summary = insights?.payrollSummary || {};
   const metrics = [
@@ -195,32 +197,45 @@ function Dashboard() {
               </ChartCard>
             </Grid>
             <Grid item xs={12} lg={7}>
-              <ChartCard title="Employees by country" subtitle="Top countries by active employee count">
-                <InsightBarChart
+              <ChartCard
+                title="Employees by country"
+                subtitle="Top 8 countries by active employee count"
+                contentSx={{ minHeight: countryChartHeight, height: countryChartHeight }}
+              >
+                <InsightHorizontalBarChart
                   data={chartData.countries}
-                  xKey="country"
-                  yKey="employee_count"
+                  xKey="employee_count"
+                  yKey="country"
                   barColor="#0f766e"
+                  yAxisWidth={132}
                 />
               </ChartCard>
             </Grid>
             <Grid item xs={12} lg={6}>
-              <ChartCard title="Average salary by department" subtitle="Highest department averages">
-                <InsightBarChart
+              <ChartCard
+                title="Average salary by department"
+                subtitle="Top 8 department averages"
+                contentSx={{ minHeight: departmentChartHeight, height: departmentChartHeight }}
+              >
+                <InsightHorizontalBarChart
                   data={chartData.departments}
-                  xKey="department"
-                  yKey="avg_salary"
+                  xKey="avg_salary"
+                  yKey="department"
                   barColor="#2563eb"
                   valueFormatter={formatCompactCurrency}
                 />
               </ChartCard>
             </Grid>
             <Grid item xs={12} lg={6}>
-              <ChartCard title="Average salary by job title" subtitle="Weighted average across countries">
-                <InsightBarChart
+              <ChartCard
+                title="Average salary by job title"
+                subtitle="Top 8 weighted averages across countries"
+                contentSx={{ minHeight: jobTitleChartHeight, height: jobTitleChartHeight }}
+              >
+                <InsightHorizontalBarChart
                   data={chartData.jobTitles}
-                  xKey="job_title"
-                  yKey="avg_salary"
+                  xKey="avg_salary"
+                  yKey="job_title"
                   barColor="#f59e0b"
                   valueFormatter={formatCompactCurrency}
                 />

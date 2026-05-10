@@ -14,6 +14,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useMemo } from "react";
 import ChartCard from "./ChartCard.jsx";
+import { chartHeightForRows, topChartRows } from "./chartHelpers.js";
 import InsightHorizontalBarChart from "./InsightHorizontalBarChart.jsx";
 import InsightMetricCard from "./InsightMetricCard.jsx";
 import SalaryStatsTable from "./SalaryStatsTable.jsx";
@@ -105,12 +106,11 @@ function JobTitleSalaryAnalytics({
 }) {
   const kpis = useMemo(() => calculateKpis(rows), [rows]);
   const chartRows = useMemo(
-    () => [...rows]
-      .sort((first, second) => Number(second.avg_salary || 0) - Number(first.avg_salary || 0))
+    () => topChartRows(rows, "avg_salary")
       .map((row) => ({ ...row, avg_salary: Number(row.avg_salary || 0) })),
     [rows]
   );
-  const chartHeight = chartRows.length <= 1 ? 220 : Math.min(350, Math.max(300, chartRows.length * 44));
+  const chartHeight = chartHeightForRows(chartRows, { rowHeight: 44 });
 
   const metrics = [
     {
