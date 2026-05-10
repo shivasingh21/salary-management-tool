@@ -15,6 +15,7 @@ import ChartCard from "../components/dashboard/ChartCard.jsx";
 import InsightBarChart from "../components/dashboard/InsightBarChart.jsx";
 import InsightMetricCard from "../components/dashboard/InsightMetricCard.jsx";
 import InsightPieChart from "../components/dashboard/InsightPieChart.jsx";
+import SalaryAnalyticsSection from "../components/dashboard/SalaryAnalyticsSection.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
 
 const compactCurrency = new Intl.NumberFormat("en-US", {
@@ -226,6 +227,11 @@ function Dashboard() {
               </ChartCard>
             </Grid>
           </Grid>
+
+          <SalaryAnalyticsSection
+            formatCurrency={formatCurrency}
+            formatCompactCurrency={formatCompactCurrency}
+          />
         </Stack>
       ) : null}
     </>

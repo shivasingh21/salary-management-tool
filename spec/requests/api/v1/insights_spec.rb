@@ -50,6 +50,31 @@ RSpec.describe "Api::V1::Insights", type: :request do
     end
   end
 
+  describe "GET /api/v1/insights/country_salary_stats" do
+    it "returns min, max, and average salary grouped by country" do
+      get "/api/v1/insights/country_salary_stats", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq("application/json")
+      expect(response.parsed_body["data"]).to contain_exactly(
+        {
+          "country" => "India",
+          "min_salary" => "40000.0",
+          "max_salary" => "150000.0",
+          "avg_salary" => "90000.0",
+          "employee_count" => 3
+        },
+        {
+          "country" => "United States",
+          "min_salary" => "250000.0",
+          "max_salary" => "250000.0",
+          "avg_salary" => "250000.0",
+          "employee_count" => 1
+        }
+      )
+    end
+  end
+
   describe "GET /api/v1/insights/department_average" do
     it "returns average salary grouped by department" do
       get "/api/v1/insights/department_average", headers: headers
@@ -95,6 +120,39 @@ RSpec.describe "Api::V1::Insights", type: :request do
           "employee_count" => 1
         }
       )
+    end
+  end
+
+  describe "GET /api/v1/insights/job_title_salary_stats" do
+    it "returns min, max, and average salary grouped by job title for a country" do
+      get "/api/v1/insights/job_title_salary_stats", params: { country_id: india.id }, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"]).to contain_exactly(
+        {
+          "country" => "India",
+          "job_title" => "Designer",
+          "min_salary" => "150000.0",
+          "max_salary" => "150000.0",
+          "avg_salary" => "150000.0",
+          "employee_count" => 1
+        },
+        {
+          "country" => "India",
+          "job_title" => "Software Engineer",
+          "min_salary" => "40000.0",
+          "max_salary" => "80000.0",
+          "avg_salary" => "60000.0",
+          "employee_count" => 2
+        }
+      )
+    end
+
+    it "requires country_id" do
+      get "/api/v1/insights/job_title_salary_stats", headers: headers
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["error"]).to eq("country_id query parameter is required")
     end
   end
 

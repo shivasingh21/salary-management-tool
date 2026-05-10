@@ -1,8 +1,16 @@
 import apiClient from "./client.js";
 
-async function getInsight(path) {
-  const response = await apiClient.get(`/insights/${path}`);
+async function getInsight(path, params = {}) {
+  const response = await apiClient.get(`/insights/${path}`, { params });
   return response.data.data;
+}
+
+export function getCountrySalaryStats() {
+  return getInsight("country_salary_stats");
+}
+
+export function getJobTitleSalaryStats(countryId) {
+  return getInsight("job_title_salary_stats", { country_id: countryId });
 }
 
 export async function getDashboardInsights() {

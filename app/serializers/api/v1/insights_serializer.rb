@@ -7,11 +7,19 @@ module Api
         collection(rows)
       end
 
+      def country_salary_stats(rows)
+        collection(rows)
+      end
+
       def department_average(rows)
         collection(rows)
       end
 
       def job_title_average(rows)
+        collection(rows)
+      end
+
+      def job_title_salary_stats(rows)
         collection(rows)
       end
 

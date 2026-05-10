@@ -3,7 +3,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
-function ChartCard({ title, subtitle, children }) {
+function ChartCard({ title, subtitle, children, contentSx }) {
   return (
     <Paper sx={{ p: 2.5, border: "1px solid", borderColor: "divider", height: "100%" }}>
       <Stack spacing={2} sx={{ height: "100%" }}>
@@ -15,7 +15,7 @@ function ChartCard({ title, subtitle, children }) {
             </Typography>
           ) : null}
         </Box>
-        <Box sx={{ flex: 1, minHeight: 280 }}>{children}</Box>
+        <Box sx={{ flex: 1, minHeight: 280, ...contentSx }}>{children}</Box>
       </Stack>
     </Paper>
   );

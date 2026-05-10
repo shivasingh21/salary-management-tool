@@ -11,8 +11,10 @@ Rails.application.routes.draw do
 
       namespace :insights do
         get "country_salaries", to: "salary_insights#country_salaries"
+        get "country_salary_stats", to: "salary_insights#country_salary_stats"
         get "department_average", to: "salary_insights#department_average"
         get "job_title_average", to: "salary_insights#job_title_average"
+        get "job_title_salary_stats", to: "salary_insights#job_title_salary_stats"
         get "payroll_summary", to: "salary_insights#payroll_summary"
         get "salary_distribution", to: "salary_insights#salary_distribution"
       end

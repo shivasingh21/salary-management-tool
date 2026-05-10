@@ -10,6 +10,12 @@ module Api
           )
         end
 
+        def country_salary_stats
+          render json: Api::V1::InsightsSerializer.country_salary_stats(
+            ::Insights::CountrySalaryStats.call
+          )
+        end
+
         def department_average
           render json: Api::V1::InsightsSerializer.department_average(
             ::Insights::DepartmentAverage.call
@@ -19,6 +25,14 @@ module Api
         def job_title_average
           render json: Api::V1::InsightsSerializer.job_title_average(
             ::Insights::JobTitleAverage.call
+          )
+        end
+
+        def job_title_salary_stats
+          return render_missing_country_id unless params[:country_id].present?
+
+          render json: Api::V1::InsightsSerializer.job_title_salary_stats(
+            ::Insights::JobTitleSalaryStats.call(country_id: params[:country_id])
           )
         end
 
@@ -32,6 +46,12 @@ module Api
           render json: Api::V1::InsightsSerializer.salary_distribution(
             ::Insights::SalaryDistribution.call
           )
+        end
+
+        private
+
+        def render_missing_country_id
+          render json: { error: "country_id query parameter is required" }, status: :bad_request
         end
       end
     end
