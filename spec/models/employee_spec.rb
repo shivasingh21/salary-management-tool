@@ -17,6 +17,27 @@ RSpec.describe Employee, type: :model do
     it { is_expected.to allow_value(true).for(:active) }
     it { is_expected.to allow_value(false).for(:active) }
     it { is_expected.not_to allow_value(nil).for(:active) }
+
+    it "rejects duplicate user emails among non-deleted employees" do
+      user = create(:user, :employee, email: "shared@example.com")
+      duplicate_user = build(:user, :employee, email: "shared@example.com")
+      create(:employee, user: user)
+
+      duplicate_employee = build(:employee, user: duplicate_user)
+
+      expect(duplicate_employee).not_to be_valid
+      expect(duplicate_employee.errors[:user_id]).to include("email has already been taken")
+    end
+
+    it "allows duplicate user emails when the matching employee is deleted" do
+      user = create(:user, :employee, email: "former@example.com")
+      duplicate_user = build(:user, :employee, email: "former@example.com")
+      create(:employee, user: user, deleted_at: Time.current)
+
+      duplicate_employee = build(:employee, user: duplicate_user)
+
+      expect(duplicate_employee).to be_valid
+    end
   end
 
   describe "#full_name" do

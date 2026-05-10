@@ -1,7 +1,7 @@
 import apiClient from "./client.js";
 
-export async function listEmployees() {
-  const response = await apiClient.get("/employees");
+export async function listEmployees(params = {}) {
+  const response = await apiClient.get("/employees", { params });
   return response.data;
 }
 

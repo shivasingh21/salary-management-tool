@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_10_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_10_124500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -28,6 +28,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_120000) do
     t.boolean "active", default: true, null: false
     t.bigint "country_id", null: false
     t.datetime "created_at", null: false
+    t.datetime "deleted_at"
     t.bigint "department_id", null: false
     t.bigint "job_title_id", null: false
     t.date "joining_date", null: false
@@ -37,10 +38,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_10_120000) do
     t.bigint "user_id", null: false
     t.index ["active"], name: "index_employees_on_active_true", where: "(active = true)"
     t.index ["country_id"], name: "index_employees_on_country_id"
+    t.index ["deleted_at"], name: "index_employees_on_deleted_at"
     t.index ["department_id"], name: "index_employees_on_department_id"
     t.index ["job_title_id"], name: "index_employees_on_job_title_id"
     t.index ["status"], name: "index_employees_on_status"
-    t.index ["user_id"], name: "index_employees_on_user_id", unique: true
+    t.index ["user_id"], name: "index_employees_on_user_id", unique: true, where: "(deleted_at IS NULL)"
   end
 
   create_table "job_titles", force: :cascade do |t|
