@@ -34,3 +34,15 @@ export function currentUser() {
   const user = window.localStorage.getItem(USER_KEY);
   return user ? JSON.parse(user) : null;
 }
+
+export async function getProfile() {
+  const response = await apiClient.get("/profile");
+  window.localStorage.setItem(USER_KEY, JSON.stringify(response.data));
+  return response.data;
+}
+
+export async function updateProfile(payload) {
+  const response = await apiClient.patch("/profile", { profile: payload });
+  window.localStorage.setItem(USER_KEY, JSON.stringify(response.data));
+  return response.data;
+}

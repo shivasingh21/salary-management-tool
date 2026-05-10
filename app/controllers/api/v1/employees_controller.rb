@@ -31,7 +31,7 @@ module Api
       end
 
       def destroy
-        @employee.update!(active: false)
+        @employee.update!(status: :inactive)
 
         head :no_content
       end
@@ -52,6 +52,7 @@ module Api
           :country_id,
           :salary,
           :joining_date,
+          :status,
           :active
         )
       end
@@ -67,6 +68,7 @@ module Api
           country: lookup_response(employee.country),
           salary: employee.salary.to_s,
           joining_date: employee.joining_date,
+          status: employee.status,
           active: employee.active,
           created_at: employee.created_at,
           updated_at: employee.updated_at

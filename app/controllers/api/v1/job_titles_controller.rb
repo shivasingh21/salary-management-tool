@@ -2,10 +2,22 @@ module Api
   module V1
     class JobTitlesController < Api::V1::BaseController
       before_action :authenticate_hr_user!
-      before_action :set_job_title, only: :destroy
+      before_action :set_job_title, only: %i[update destroy]
 
       def index
-        render json: JobTitle.order(:name).map { |job_title| job_title_response(job_title) }
+        render json: JobTitle.left_joins(:employees)
+          .select("job_titles.*, COUNT(employees.id) AS employees_count")
+          .group("job_titles.id")
+          .order(:name)
+          .map { |job_title| job_title_response(job_title) }
+      end
+
+      def update
+        if @job_title.update(job_title_params)
+          render json: job_title_response(@job_title)
+        else
+          render json: { errors: @job_title.errors.to_hash }, status: :unprocessable_content
+        end
       end
 
       def create
@@ -41,7 +53,8 @@ module Api
       def job_title_response(job_title)
         {
           id: job_title.id,
-          name: job_title.name
+          name: job_title.name,
+          employee_count: job_title.try(:employees_count).to_i
         }
       end
     end

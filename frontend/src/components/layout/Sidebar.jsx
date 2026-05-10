@@ -1,4 +1,3 @@
-import AddIcon from "@mui/icons-material/Add";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import FlagIcon from "@mui/icons-material/Flag";
 import GroupsIcon from "@mui/icons-material/Groups";
@@ -42,7 +41,11 @@ function Sidebar() {
       }}
     >
       <Toolbar sx={{ px: 3 }}>
-        <Box>
+        <Box
+          component={NavLink}
+          to="/dashboard"
+          sx={{ color: "inherit", textDecoration: "none" }}
+        >
           <Typography variant="h6">SalaryOps</Typography>
           <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.65)" }}>
             People and payroll

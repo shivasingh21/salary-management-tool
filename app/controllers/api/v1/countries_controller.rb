@@ -2,10 +2,22 @@ module Api
   module V1
     class CountriesController < Api::V1::BaseController
       before_action :authenticate_hr_user!
-      before_action :set_country, only: :destroy
+      before_action :set_country, only: %i[update destroy]
 
       def index
-        render json: Country.order(:name).map { |country| country_response(country) }
+        render json: Country.left_joins(:employees)
+          .select("countries.*, COUNT(employees.id) AS employees_count")
+          .group("countries.id")
+          .order(:name)
+          .map { |country| country_response(country) }
+      end
+
+      def update
+        if @country.update(country_params)
+          render json: country_response(@country)
+        else
+          render json: { errors: @country.errors.to_hash }, status: :unprocessable_content
+        end
       end
 
       def create
@@ -41,7 +53,8 @@ module Api
       def country_response(country)
         {
           id: country.id,
-          name: country.name
+          name: country.name,
+          employee_count: country.try(:employees_count).to_i
         }
       end
     end

@@ -31,7 +31,7 @@ function Login() {
       await signIn(form);
       navigate(location.state?.from?.pathname || "/dashboard", { replace: true });
     } catch (requestError) {
-      setError(requestError.response?.data?.error || "Unable to sign in.");
+      setError(requestError.response?.data?.error || "Unable to log in.");
     } finally {
       setSubmitting(false);
     }
@@ -45,7 +45,7 @@ function Login() {
             <Avatar sx={{ bgcolor: "primary.main" }}>
               <LockOutlinedIcon />
             </Avatar>
-            <Typography variant="h5">Sign in</Typography>
+            <Typography variant="h5">Log In</Typography>
             <Typography variant="body2" color="text.secondary" textAlign="center">
               Use an HR account to access salary management.
             </Typography>
@@ -56,7 +56,7 @@ function Login() {
           <TextField required fullWidth label="Email" name="email" type="email" value={form.email} onChange={handleChange} />
           <TextField required fullWidth label="Password" name="password" type="password" value={form.password} onChange={handleChange} />
           <Button type="submit" variant="contained" size="large" disabled={submitting}>
-            {submitting ? "Signing in..." : "Sign in"}
+            {submitting ? "Logging in..." : "Log In"}
           </Button>
         </Stack>
       </Paper>

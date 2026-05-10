@@ -10,6 +10,11 @@ export async function createDepartment(payload) {
   return response.data;
 }
 
+export async function updateDepartment(id, payload) {
+  const response = await apiClient.patch(`/departments/${id}`, { department: payload });
+  return response.data;
+}
+
 export async function deleteDepartment(id) {
   await apiClient.delete(`/departments/${id}`);
 }
@@ -24,6 +29,11 @@ export async function createJobTitle(payload) {
   return response.data;
 }
 
+export async function updateJobTitle(id, payload) {
+  const response = await apiClient.patch(`/job_titles/${id}`, { job_title: payload });
+  return response.data;
+}
+
 export async function deleteJobTitle(id) {
   await apiClient.delete(`/job_titles/${id}`);
 }
@@ -35,6 +45,11 @@ export async function listCountries() {
 
 export async function createCountry(payload) {
   const response = await apiClient.post("/countries", { country: payload });
+  return response.data;
+}
+
+export async function updateCountry(id, payload) {
+  const response = await apiClient.patch(`/countries/${id}`, { country: payload });
   return response.data;
 }
 

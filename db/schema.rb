@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_09_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_10_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,12 +32,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_09_090000) do
     t.bigint "job_title_id", null: false
     t.date "joining_date", null: false
     t.decimal "salary", precision: 12, scale: 2, null: false
+    t.integer "status", default: 1, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["active"], name: "index_employees_on_active_true", where: "(active = true)"
     t.index ["country_id"], name: "index_employees_on_country_id"
     t.index ["department_id"], name: "index_employees_on_department_id"
     t.index ["job_title_id"], name: "index_employees_on_job_title_id"
+    t.index ["status"], name: "index_employees_on_status"
     t.index ["user_id"], name: "index_employees_on_user_id", unique: true
   end
 

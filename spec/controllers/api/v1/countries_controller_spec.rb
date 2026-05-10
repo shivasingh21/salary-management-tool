@@ -14,8 +14,8 @@ RSpec.describe Api::V1::CountriesController, type: :controller do
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to eq([
-        { "id" => india.id, "name" => "India" },
-        { "id" => Country.find_by!(name: "Zimbabwe").id, "name" => "Zimbabwe" }
+        { "id" => india.id, "name" => "India", "employee_count" => 0 },
+        { "id" => Country.find_by!(name: "Zimbabwe").id, "name" => "Zimbabwe", "employee_count" => 0 }
       ])
     end
   end
