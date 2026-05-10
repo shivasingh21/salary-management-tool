@@ -65,13 +65,13 @@ function Header() {
             <Typography variant="body2" color="text.secondary">{user?.email}</Typography>
           </Box>
           <Divider />
-          <MenuItem onClick={handleSignOut}>
-            <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
-            Log Out
-          </MenuItem>
           <MenuItem onClick={handleProfile}>
             <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
             Profile
+          </MenuItem>
+          <MenuItem onClick={handleSignOut}>
+            <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
+            Log Out
           </MenuItem>
         </Menu>
       </Toolbar>

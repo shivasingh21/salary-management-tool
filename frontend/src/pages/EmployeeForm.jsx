@@ -57,8 +57,11 @@ function EmployeeForm() {
         joining_date: employee.joining_date || "",
         status: employee.status || "active"
       });
-    }).catch(() => setError("Unable to load employee."));
-  }, [id]);
+    }).catch(() => navigate("/employees", {
+      replace: true,
+      state: { error: "Employee not found" }
+    }));
+  }, [id, navigate]);
 
   function handleChange(event) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -155,7 +158,7 @@ function EmployeeForm() {
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField select fullWidth required label="Status" name="status" value={form.status} onChange={handleChange}>
-              <MenuItem value="onboarded">Onboarded</MenuItem>
+              <MenuItem value="onboarded">Onboarding</MenuItem>
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="inactive">Inactive</MenuItem>
             </TextField>

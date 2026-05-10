@@ -107,6 +107,8 @@ module SeedData
 
   def employee_rows(user_ids, department_ids, job_title_ids, country_ids, now)
     user_ids.map do |user_id|
+      status = random_status
+
       {
         user_id: user_id,
         department_id: random_id_between(department_ids),
@@ -114,11 +116,16 @@ module SeedData
         country_id: random_id_between(country_ids),
         salary: Faker::Number.between(from: 45_000, to: 200_000),
         joining_date: Faker::Date.between(from: 8.years.ago.to_date, to: Date.current),
-        active: true,
+        status: Employee.statuses.fetch(status),
+        active: status != "inactive",
         created_at: now,
         updated_at: now
       }
     end
+  end
+
+  def random_status
+    Faker::Base.sample(%w[onboarded active active active inactive])
   end
 
   def random_id_between(ids)

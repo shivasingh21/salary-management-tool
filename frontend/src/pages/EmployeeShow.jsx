@@ -20,6 +20,12 @@ function statusColor(status) {
   return "default";
 }
 
+function statusLabel(status) {
+  if (status === "onboarded") return "Onboarding";
+  if (status === "inactive") return "Inactive";
+  return "Active";
+}
+
 function EmployeeShow() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -31,8 +37,11 @@ function EmployeeShow() {
   useEffect(() => {
     getEmployee(id)
       .then(setEmployee)
-      .catch(() => setError("Unable to load employee."));
-  }, [id]);
+      .catch(() => navigate("/employees", {
+        replace: true,
+        state: { error: "Employee not found" }
+      }));
+  }, [id, navigate]);
 
   async function handleDelete() {
     setDeleting(true);
@@ -80,7 +89,7 @@ function EmployeeShow() {
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Typography variant="h5">{employee?.full_name || "Employee"}</Typography>
             <Chip
-              label={(employee?.status || "active").replace("_", " ")}
+              label={statusLabel(employee?.status)}
               color={statusColor(employee?.status)}
               sx={{ textTransform: "capitalize" }}
             />

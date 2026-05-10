@@ -17,13 +17,40 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from "recharts";
 import PageHeader from "../components/common/PageHeader.jsx";
 import lookupConfig from "./lookupConfig.js";
+
+function RankedYAxisTick({ x, y, payload }) {
+  const rank = payload.index + 1;
+
+  return (
+    <text x={x} y={y + 4} textAnchor="end" fill="#344054" fontSize={12} fontWeight={700}>
+      #{rank}
+    </text>
+  );
+}
+
+function EmployeeCountTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+
+  const record = payload[0].payload;
+
+  return (
+    <Box sx={{ bgcolor: "background.paper", border: "1px solid", borderColor: "divider", borderRadius: 1, boxShadow: 3, p: 1.25 }}>
+      <Typography fontWeight={700}>{record.name}</Typography>
+      <Typography variant="body2" color="text.secondary">
+        {Number(record.employee_count || 0).toLocaleString()} employees
+      </Typography>
+    </Box>
+  );
+}
 
 function formatErrors(error) {
   const errors = error.response?.data?.errors;
@@ -42,8 +69,12 @@ function LookupIndex({ resource }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [name, setName] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [actionLocked, setActionLocked] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const headerCellSx = { fontWeight: 700, textDecoration: "underline" };
+  const headerCellSx = { fontWeight: 700, textDecoration: "underline", textAlign: "left" };
 
   const loadRecords = useCallback(() => {
     setError("");
@@ -56,18 +87,34 @@ function LookupIndex({ resource }) {
     loadRecords();
   }, [loadRecords]);
 
+  useEffect(() => {
+    if (!error) return undefined;
+
+    const timeout = window.setTimeout(() => setError(""), 5000);
+
+    return () => window.clearTimeout(timeout);
+  }, [error]);
+
+  useEffect(() => {
+    setError("");
+  }, [resource]);
+
   async function handleDelete(record) {
     setError("");
+    setDeletingId(record.id);
 
     try {
       await config.delete(record.id);
       loadRecords();
     } catch (requestError) {
       setError(requestError.response?.data?.error || `Unable to delete ${config.singular.toLowerCase()}.`);
+    } finally {
+      setDeletingId(null);
     }
   }
 
   function openDialog(record = null) {
+    setActionLocked(true);
     setEditingRecord(record);
     setName(record?.name || "");
     setDialogOpen(true);
@@ -78,6 +125,7 @@ function LookupIndex({ resource }) {
     setDialogOpen(false);
     setEditingRecord(null);
     setName("");
+    setActionLocked(false);
   }
 
   async function handleSubmit(event) {
@@ -103,6 +151,13 @@ function LookupIndex({ resource }) {
   const topRecords = [...records]
     .sort((first, second) => Number(second.employee_count || 0) - Number(first.employee_count || 0))
     .slice(0, 10);
+  const filteredRecords = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return records;
+
+    return records.filter((record) => record.name.toLowerCase().includes(query));
+  }, [records, search]);
+  const visibleRecords = filteredRecords.slice(page * 20, page * 20 + 20);
 
   return (
     <>
@@ -110,14 +165,25 @@ function LookupIndex({ resource }) {
         title={config.title}
         subtitle={config.subtitle}
         action={
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => openDialog()}
-            sx={{ bgcolor: "#101828", "&:hover": { bgcolor: "#1d2939" } }}
-          >
-            New {config.singular.toLowerCase()}
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <TextField
+              size="small"
+              label={`Search ${config.title.toLowerCase()}`}
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(0);
+              }}
+            />
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => openDialog()}
+              disabled={actionLocked}
+            >
+              New {config.singular.toLowerCase()}
+            </Button>
+          </Stack>
         }
       />
 
@@ -126,29 +192,29 @@ function LookupIndex({ resource }) {
       <Grid container spacing={2}>
         <Grid item xs={12} lg={8}>
           <TableContainer component={Paper} sx={{ border: "1px solid", borderColor: "divider" }}>
-            <Table>
+            <Table sx={{ tableLayout: "fixed" }}>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={headerCellSx}>Name</TableCell>
-                  <TableCell align="right" sx={headerCellSx}>Employees</TableCell>
-                  <TableCell align="right" sx={headerCellSx}>Actions</TableCell>
+                  <TableCell align="left" sx={{ ...headerCellSx, width: "33.33%" }}>Name</TableCell>
+                  <TableCell align="left" sx={{ ...headerCellSx, width: "33.33%" }}>Employees</TableCell>
+                  <TableCell align="left" sx={{ ...headerCellSx, width: "33.33%" }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {records.map((record) => (
-                  <TableRow key={record.id} hover>
+                {visibleRecords.map((record, index) => (
+                  <TableRow key={record.id} hover sx={{ bgcolor: index % 2 === 0 ? "background.paper" : "rgba(16, 24, 40, 0.04)" }}>
                     <TableCell>
                       <Typography fontWeight={700}>{record.name}</Typography>
                     </TableCell>
-                    <TableCell align="right">{Number(record.employee_count || 0).toLocaleString()}</TableCell>
-                    <TableCell align="right">
+                    <TableCell align="left">{Number(record.employee_count || 0).toLocaleString()}</TableCell>
+                    <TableCell align="left">
                       <Tooltip title={`Edit ${config.singular.toLowerCase()}`}>
-                        <IconButton onClick={() => openDialog(record)}>
+                        <IconButton onClick={() => openDialog(record)} disabled={actionLocked || deletingId === record.id}>
                           <EditIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title={`Delete ${config.singular.toLowerCase()}`}>
-                        <IconButton color="error" onClick={() => handleDelete(record)}>
+                        <IconButton color="error" onClick={() => handleDelete(record)} disabled={actionLocked || deletingId === record.id}>
                           <DeleteOutlineIcon />
                         </IconButton>
                       </Tooltip>
@@ -158,6 +224,25 @@ function LookupIndex({ resource }) {
               </TableBody>
             </Table>
           </TableContainer>
+          <Paper
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderTop: 0,
+              bottom: 0,
+              position: "sticky",
+              zIndex: 2
+            }}
+          >
+            <TablePagination
+              component="div"
+              count={filteredRecords.length}
+              page={page}
+              rowsPerPage={20}
+              rowsPerPageOptions={[20]}
+              onPageChange={(_event, nextPage) => setPage(nextPage)}
+            />
+          </Paper>
         </Grid>
         <Grid item xs={12} lg={4}>
           <Paper sx={{ p: 2.5, border: "1px solid", borderColor: "divider" }}>
@@ -165,16 +250,28 @@ function LookupIndex({ resource }) {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Top 10 {config.title.toLowerCase()} by assigned employees.
             </Typography>
-            <Stack spacing={1.25}>
+            <Box sx={{ height: 320 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topRecords} layout="vertical" margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                  <CartesianGrid stroke="#eef2f6" strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" tick={{ fill: "#667085", fontSize: 12 }} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={34}
+                    interval={0}
+                    tick={<RankedYAxisTick />}
+                  />
+                  <ChartTooltip content={<EmployeeCountTooltip />} />
+                  <Bar dataKey="employee_count" fill="#0c5dffff" radius={[0, 6, 6, 0]} maxBarSize={22} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
+            <Stack spacing={0.75} sx={{ mt: 1.5 }}>
               {topRecords.map((record, index) => (
-                <Stack key={record.id} direction="row" justifyContent="space-between" spacing={2}>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography fontWeight={700} noWrap>{index + 1}. {record.name}</Typography>
-                  </Box>
-                  <Typography color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
-                    {Number(record.employee_count || 0).toLocaleString()}
-                  </Typography>
-                </Stack>
+                <Typography key={record.id} variant="caption" color="text.secondary" noWrap>
+                  #{index + 1} {record.name}
+                </Typography>
               ))}
             </Stack>
           </Paper>

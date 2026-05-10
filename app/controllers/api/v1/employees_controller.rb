@@ -56,7 +56,7 @@ module Api
       private
 
       def set_employee
-        @employee = Employee.find(params[:id])
+        @employee = Employee.not_deleted.find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: { error: "Employee not found" }, status: :not_found
       end
@@ -106,6 +106,7 @@ module Api
           .then { |scope| filter_by_lookup(scope, :job_title_id) }
           .then { |scope| filter_by_lookup(scope, :department_id) }
           .then { |scope| filter_by_lookup(scope, :country_id) }
+          .then { |scope| filter_by_status(scope) }
           .then { |scope| filter_by_salary_range(scope) }
       end
 
@@ -134,6 +135,12 @@ module Api
         scope.where(key => params[key])
       end
 
+      def filter_by_status(scope)
+        return scope if params[:status].blank?
+
+        scope.where(status: params[:status])
+      end
+
       def filter_by_salary_range(scope)
         case params[:salary_range]
         when "0-50000"
@@ -154,7 +161,7 @@ module Api
       end
 
       def current_per_page
-        requested = params.fetch(:per_page, 30).to_i
+        requested = params.fetch(:per_page, 20).to_i
 
         requested.clamp(1, 100)
       end

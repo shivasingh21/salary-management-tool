@@ -4,10 +4,10 @@ const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#2563eb"
+      main: "#101828"
     },
     secondary: {
-      main: "#0f766e"
+      main: "#475467"
     },
     background: {
       default: "#f6f8fb",
@@ -39,6 +39,13 @@ const theme = createTheme({
         root: {
           textTransform: "none",
           fontWeight: 700
+        }
+      }
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          maxHeight: "30vh"
         }
       }
     },
