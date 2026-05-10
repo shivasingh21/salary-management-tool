@@ -106,12 +106,12 @@ module SeedData
   end
 
   def employee_rows(user_ids, department_ids, job_title_ids, country_ids, now)
-    user_ids.each_with_index.map do |user_id, index|
+    user_ids.map do |user_id|
       {
         user_id: user_id,
-        department_id: department_ids[index % department_ids.length],
-        job_title_id: job_title_ids[(index * 3) % job_title_ids.length],
-        country_id: country_ids[(index * 7) % country_ids.length],
+        department_id: random_id_between(department_ids),
+        job_title_id: random_id_between(job_title_ids),
+        country_id: random_id_between(country_ids),
         salary: Faker::Number.between(from: 45_000, to: 200_000),
         joining_date: Faker::Date.between(from: 8.years.ago.to_date, to: Date.current),
         active: true,
@@ -119,6 +119,10 @@ module SeedData
         updated_at: now
       }
     end
+  end
+
+  def random_id_between(ids)
+    Faker::Number.between(from: ids.first, to: ids.last)
   end
 
   def employee_email(number, first_name, last_name)
