@@ -192,7 +192,11 @@ function Dashboard() {
 
           <Grid container spacing={2}>
             <Grid item xs={12} lg={5}>
-              <ChartCard title="Salary distribution" subtitle="Employees grouped by salary range">
+              <ChartCard
+                title="Salary distribution"
+                subtitle="Employees grouped by salary range"
+                contentSx={{ minHeight: 330, height: 330 }}
+              >
                 <InsightPieChart data={chartData.salaryDistribution} />
               </ChartCard>
             </Grid>

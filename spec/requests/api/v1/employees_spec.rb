@@ -32,7 +32,7 @@ RSpec.describe "Api::V1::Employees", type: :request do
       expect(response.parsed_body["data"].first.dig("department", "name")).to eq("Engineering")
       expect(response.parsed_body["meta"]).to include(
         "page" => 1,
-        "per_page" => 30,
+        "per_page" => 20,
         "total_count" => 1,
         "total_pages" => 1
       )
@@ -42,13 +42,13 @@ RSpec.describe "Api::V1::Employees", type: :request do
     it "paginates employees" do
       create_list(:employee, 31)
 
-      get "/api/v1/employees", params: { page: 2, per_page: 30 }, headers: headers
+      get "/api/v1/employees", params: { page: 2, per_page: 20 }, headers: headers
 
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body["data"].size).to eq(1)
+      expect(response.parsed_body["data"].size).to eq(11)
       expect(response.parsed_body["meta"]).to include(
         "page" => 2,
-        "per_page" => 30,
+        "per_page" => 20,
         "total_count" => 31,
         "total_pages" => 2
       )
@@ -77,6 +77,7 @@ RSpec.describe "Api::V1::Employees", type: :request do
         job_title_id: engineer.id,
         department_id: finance.id,
         country_id: canada.id,
+        status: "active",
         salary_range: "50001-100000"
       }, headers: headers
 
@@ -112,6 +113,15 @@ RSpec.describe "Api::V1::Employees", type: :request do
 
     it "returns not found for unknown employees" do
       get "/api/v1/employees/0", headers: headers
+
+      expect(response).to have_http_status(:not_found)
+      expect(response.parsed_body["error"]).to eq("Employee not found")
+    end
+
+    it "returns not found for deleted employees" do
+      employee = create(:employee, deleted_at: Time.current)
+
+      get "/api/v1/employees/#{employee.id}", headers: headers
 
       expect(response).to have_http_status(:not_found)
       expect(response.parsed_body["error"]).to eq("Employee not found")

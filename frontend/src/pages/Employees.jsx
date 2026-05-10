@@ -21,7 +21,7 @@ import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useCallback, useEffect, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { deleteEmployee, listEmployees } from "../api/employees.js";
 import { listCountries, listDepartments, listJobTitles } from "../api/lookups.js";
 import PageHeader from "../components/common/PageHeader.jsx";
@@ -34,19 +34,25 @@ const initialFilters = {
   job_title_id: "",
   department_id: "",
   country_id: "",
+  status: "",
   salary_range: ""
 };
 
 const salaryRanges = [
-  { value: "0-50000", label: "0-50000" },
-  { value: "50001-100000", label: "50001-100000" },
-  { value: "100001-200000", label: "100001-200000" },
-  { value: "200000+", label: "200000+" }
+  { value: "0-50000", label: "$0 - $50,000" },
+  { value: "50001-100000", label: "$50,001 - $100,000" },
+  { value: "100001-200000", label: "$100,001 - $200,000" },
+  { value: "200000+", label: "$200,000+" }
 ];
+
+function isPageReload() {
+  const navigation = window.performance?.getEntriesByType?.("navigation")?.[0];
+  return navigation?.type === "reload";
+}
 
 function Employees() {
   const [employees, setEmployees] = useState([]);
-  const [meta, setMeta] = useState({ page: 1, per_page: 30, total_count: 0, total_pages: 0 });
+  const [meta, setMeta] = useState({ page: 1, per_page: 20, total_count: 0, total_pages: 0 });
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState(initialFilters);
   const [draftFilters, setDraftFilters] = useState(initialFilters);
@@ -54,13 +60,34 @@ function Employees() {
   const [lookups, setLookups] = useState({ departments: [], jobTitles: [], countries: [] });
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [actionLocked, setActionLocked] = useState(false);
+  const [flashError, setFlashError] = useState("");
   const [error, setError] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
   const filtersOpen = Boolean(filterAnchor);
+
+  useEffect(() => {
+    const message = location.state?.error;
+    if (!message) return undefined;
+
+    navigate(location.pathname, { replace: true, state: {} });
+
+    if (isPageReload()) {
+      setFlashError("");
+      return undefined;
+    }
+
+    setFlashError(message);
+    const timeout = window.setTimeout(() => setFlashError(""), 5000);
+
+    return () => window.clearTimeout(timeout);
+  }, [location.pathname, location.state?.error, navigate]);
 
   const loadEmployees = useCallback(() => {
     const params = {
       page: page + 1,
-      per_page: 30,
+      per_page: 20,
       ...Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== ""))
     };
 
@@ -119,6 +146,12 @@ function Employees() {
     return "#98a2b3";
   }
 
+  function statusLabel(status) {
+    if (status === "onboarded") return "Onboarding";
+    if (status === "inactive") return "Inactive";
+    return "Active";
+  }
+
   return (
     <>
       <PageHeader
@@ -149,30 +182,32 @@ function Employees() {
         }
       />
 
+      {flashError ? <Typography color="error" sx={{ mb: 2 }}>{flashError}</Typography> : null}
       {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
 
       <TableContainer component={Paper} sx={{ border: "1px solid", borderColor: "divider" }}>
-        <Table>
+        <Table sx={{ tableLayout: "fixed" }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>ID</TableCell>
-              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Date of Joining</TableCell>
-              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Job Title</TableCell>
-              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Country</TableCell>
-              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Salary</TableCell>
-              <TableCell sx={{ fontWeight: 700, textDecoration: "underline" }}>Actions</TableCell>
+              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "6.28%" }}>ID</TableCell>
+              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "16.28%" }}>Name</TableCell>
+              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "14.28%" }}>Date of Joining</TableCell>
+              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "20.28%" }}>Job Title</TableCell>
+              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "14.28%" }}>Country</TableCell>
+              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "14.28%" }}>Salary</TableCell>
+              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "14.28%" }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {employees.map((employee) => (
-              <TableRow key={employee.id} hover>
+            {employees.map((employee, index) => (
+              <TableRow key={employee.id} hover sx={{ bgcolor: index % 2 === 0 ? "background.paper" : "rgba(16, 24, 40, 0.04)" }}>
                 <TableCell>{employee.id}</TableCell>
                 <TableCell>
-                  <Box sx={{ alignItems: "center", display: "flex", gap: 1, justifyContent: "space-between", maxWidth: 260 }}>
+                  <Box sx={{ alignItems: "center", display: "inline-flex", gap: 0.75, maxWidth: "100%" }}>
                     <Typography fontWeight={700}>{employee.full_name || "Unassigned"}</Typography>
                     <Box
                       aria-label={employee.status || "active"}
+                      title={statusLabel(employee.status)}
                       component="span"
                       sx={{
                         bgcolor: statusDotColor(employee.status),
@@ -196,12 +231,23 @@ function Employees() {
                 <TableCell>${Number(employee.salary).toLocaleString()}</TableCell>
                 <TableCell>
                   <Tooltip title="View employee">
-                    <IconButton component={RouterLink} to={`/employees/${employee.id}`} color="primary">
+                    <IconButton
+                      component={RouterLink}
+                      to={`/employees/${employee.id}`}
+                      color="primary"
+                      disabled={actionLocked}
+                      onClick={() => setActionLocked(true)}
+                    >
                       <VisibilityIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Edit employee">
-                    <IconButton component={RouterLink} to={`/employees/${employee.id}/edit`}>
+                    <IconButton
+                      component={RouterLink}
+                      to={`/employees/${employee.id}/edit`}
+                      disabled={actionLocked}
+                      onClick={() => setActionLocked(true)}
+                    >
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
@@ -230,8 +276,8 @@ function Employees() {
           component="div"
           count={meta.total_count}
           page={page}
-          rowsPerPage={30}
-          rowsPerPageOptions={[30]}
+          rowsPerPage={20}
+          rowsPerPageOptions={[20]}
           onPageChange={(_event, nextPage) => setPage(nextPage)}
         />
       </Paper>
@@ -268,12 +314,18 @@ function Employees() {
             <MenuItem value="">All countries</MenuItem>
             {lookups.countries.map((country) => <MenuItem key={country.id} value={country.id}>{country.name}</MenuItem>)}
           </TextField>
+          <TextField select label="Status" name="status" value={draftFilters.status} onChange={handleFilterChange}>
+            <MenuItem value="">All statuses</MenuItem>
+            <MenuItem value="onboarded">Onboarding</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="inactive">Inactive</MenuItem>
+          </TextField>
           <TextField select label="Salary Range" name="salary_range" value={draftFilters.salary_range} onChange={handleFilterChange}>
             <MenuItem value="">All salary ranges</MenuItem>
             {salaryRanges.map((range) => <MenuItem key={range.value} value={range.value}>{range.label}</MenuItem>)}
           </TextField>
           <Stack direction="row" justifyContent="flex-end" spacing={1}>
-            <Button onClick={handleClearFilters}>Clear Filters</Button>
+            <Button color="secondary" onClick={handleClearFilters}>Clear Filters</Button>
             <Button variant="contained" onClick={handleSaveFilters}>Save Filters</Button>
           </Stack>
         </Stack>
