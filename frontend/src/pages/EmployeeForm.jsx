@@ -13,9 +13,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { createEmployee, deleteEmployee, getEmployee, updateEmployee } from "../api/employees.js";
 import { listCountries, listDepartments, listJobTitles } from "../api/lookups.js";
 import PageHeader from "../components/common/PageHeader.jsx";
+import DeleteEmployeeDialog from "../components/employees/DeleteEmployeeDialog.jsx";
 
 const initialForm = {
   user_id: "",
+  first_name: "",
+  last_name: "",
   department_id: "",
   job_title_id: "",
   country_id: "",
@@ -29,6 +32,8 @@ function EmployeeForm() {
   const navigate = useNavigate();
   const [form, setForm] = useState(initialForm);
   const [lookups, setLookups] = useState({ departments: [], jobTitles: [], countries: [] });
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -43,6 +48,8 @@ function EmployeeForm() {
     getEmployee(id).then((employee) => {
       setForm({
         user_id: employee.user_id || "",
+        first_name: employee.first_name || "",
+        last_name: employee.last_name || "",
         department_id: employee.department?.id || "",
         job_title_id: employee.job_title?.id || "",
         country_id: employee.country?.id || "",
@@ -74,8 +81,14 @@ function EmployeeForm() {
   }
 
   async function handleDelete() {
-    await deleteEmployee(id);
-    navigate("/employees");
+    setDeleting(true);
+
+    try {
+      await deleteEmployee(id);
+      navigate("/employees");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -85,30 +98,46 @@ function EmployeeForm() {
         subtitle="Manage salary, location, department, job assignment, and status."
         action={id ? (
           <Tooltip title="Delete employee">
-            <IconButton color="error" onClick={handleDelete}>
+            <IconButton color="error" onClick={() => setDeleteOpen(true)}>
               <DeleteOutlineIcon />
             </IconButton>
           </Tooltip>
         ) : null}
       />
 
-      <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3, maxWidth: 900, border: "1px solid", borderColor: "divider" }}>
+      <Paper
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          p: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "8px 10px 24px rgba(16, 24, 40, 0.14)"
+        }}
+      >
         {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
         <Grid container spacing={2}>
+          {id ? (
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth label="Employee ID" value={id} InputProps={{ readOnly: true }} />
+            </Grid>
+          ) : (
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth required label="User ID" name="user_id" value={form.user_id} onChange={handleChange} />
+            </Grid>
+          )}
           <Grid item xs={12} md={6}>
-            <TextField fullWidth required label="User ID" name="user_id" value={form.user_id} onChange={handleChange} />
+            <TextField fullWidth required label="Date of Joining" name="joining_date" type="date" value={form.joining_date} onChange={handleChange} InputLabelProps={{ shrink: true }} />
           </Grid>
           <Grid item xs={12} md={6}>
-            <TextField fullWidth required label="Salary" name="salary" type="number" value={form.salary} onChange={handleChange} />
+            <TextField fullWidth required label="First Name" name="first_name" value={form.first_name} onChange={handleChange} />
           </Grid>
           <Grid item xs={12} md={6}>
-            <TextField fullWidth required label="Joining Date" name="joining_date" type="date" value={form.joining_date} onChange={handleChange} InputLabelProps={{ shrink: true }} />
+            <TextField fullWidth required label="Last Name" name="last_name" value={form.last_name} onChange={handleChange} />
           </Grid>
           <Grid item xs={12} md={6}>
-            <TextField select fullWidth required label="Status" name="status" value={form.status} onChange={handleChange}>
-              <MenuItem value="onboarded">Onboarded</MenuItem>
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
+            <TextField select fullWidth required label="Job Title" name="job_title_id" value={form.job_title_id} onChange={handleChange}>
+              {lookups.jobTitles.map((jobTitle) => <MenuItem key={jobTitle.id} value={jobTitle.id}>{jobTitle.name}</MenuItem>)}
             </TextField>
           </Grid>
           <Grid item xs={12} md={6}>
@@ -117,22 +146,35 @@ function EmployeeForm() {
             </TextField>
           </Grid>
           <Grid item xs={12} md={6}>
-            <TextField select fullWidth required label="Job Title" name="job_title_id" value={form.job_title_id} onChange={handleChange}>
-              {lookups.jobTitles.map((jobTitle) => <MenuItem key={jobTitle.id} value={jobTitle.id}>{jobTitle.name}</MenuItem>)}
+            <TextField select fullWidth required label="Country" name="country_id" value={form.country_id} onChange={handleChange}>
+              {lookups.countries.map((country) => <MenuItem key={country.id} value={country.id}>{country.name}</MenuItem>)}
             </TextField>
           </Grid>
           <Grid item xs={12} md={6}>
-            <TextField select fullWidth required label="Country" name="country_id" value={form.country_id} onChange={handleChange}>
-              {lookups.countries.map((country) => <MenuItem key={country.id} value={country.id}>{country.name}</MenuItem>)}
+            <TextField fullWidth required label="Salary" name="salary" type="number" value={form.salary} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField select fullWidth required label="Status" name="status" value={form.status} onChange={handleChange}>
+              <MenuItem value="onboarded">Onboarded</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
             </TextField>
           </Grid>
         </Grid>
 
         <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3 }}>
           <Button onClick={() => navigate("/employees")}>Cancel</Button>
-          <Button type="submit" variant="contained">Save employee</Button>
+          <Button type="submit" variant="contained" sx={{ bgcolor: "#101828", "&:hover": { bgcolor: "#1d2939" } }}>
+            {id ? "Save changes" : "Save employee"}
+          </Button>
         </Stack>
       </Paper>
+      <DeleteEmployeeDialog
+        open={deleteOpen}
+        loading={deleting}
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }

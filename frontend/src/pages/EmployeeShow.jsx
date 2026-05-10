@@ -3,7 +3,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
-import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -13,6 +12,7 @@ import { useEffect, useState } from "react";
 import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 import { deleteEmployee, getEmployee } from "../api/employees.js";
 import PageHeader from "../components/common/PageHeader.jsx";
+import DeleteEmployeeDialog from "../components/employees/DeleteEmployeeDialog.jsx";
 
 function statusColor(status) {
   if (status === "active") return "success";
@@ -24,6 +24,8 @@ function EmployeeShow() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [employee, setEmployee] = useState(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -33,8 +35,14 @@ function EmployeeShow() {
   }, [id]);
 
   async function handleDelete() {
-    await deleteEmployee(id);
-    navigate("/employees");
+    setDeleting(true);
+
+    try {
+      await deleteEmployee(id);
+      navigate("/employees");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -45,14 +53,14 @@ function EmployeeShow() {
         action={
           <Stack direction="row" spacing={1}>
             <Tooltip title="Edit employee">
-              <IconButton component={RouterLink} to={`/employees/${id}/edit`} color="primary">
-                <EditIcon />
-              </IconButton>
+              <Button component={RouterLink} to={`/employees/${id}/edit`} variant="contained" startIcon={<EditIcon />}>
+                Edit
+              </Button>
             </Tooltip>
             <Tooltip title="Delete employee">
-              <IconButton color="error" onClick={handleDelete}>
-                <DeleteOutlineIcon />
-              </IconButton>
+              <Button color="error" variant="outlined" startIcon={<DeleteOutlineIcon />} onClick={() => setDeleteOpen(true)}>
+                Delete
+              </Button>
             </Tooltip>
           </Stack>
         }
@@ -60,7 +68,14 @@ function EmployeeShow() {
 
       {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
 
-      <Paper sx={{ p: 3, border: "1px solid", borderColor: "divider" }}>
+      <Paper
+        sx={{
+          p: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "8px 10px 24px rgba(16, 24, 40, 0.14)"
+        }}
+      >
         <Stack spacing={2.5}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Typography variant="h5">{employee?.full_name || "Employee"}</Typography>
@@ -76,7 +91,13 @@ function EmployeeShow() {
               <TextField fullWidth label="Employee ID" value={employee?.id || ""} InputProps={{ readOnly: true }} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="User ID" value={employee?.user_id || ""} InputProps={{ readOnly: true }} />
+              <TextField fullWidth label="Date of Joining" value={employee?.joining_date || ""} InputProps={{ readOnly: true }} />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth label="Name" value={employee?.full_name || ""} InputProps={{ readOnly: true }} />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth label="Email" value={employee?.email || ""} InputProps={{ readOnly: true }} />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField fullWidth label="Job Title" value={employee?.job_title?.name || ""} InputProps={{ readOnly: true }} />
@@ -90,14 +111,15 @@ function EmployeeShow() {
             <Grid item xs={12} md={6}>
               <TextField fullWidth label="Salary" value={employee ? `$${Number(employee.salary).toLocaleString()}` : ""} InputProps={{ readOnly: true }} />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth label="DOJ" value={employee?.joining_date || ""} InputProps={{ readOnly: true }} />
-            </Grid>
           </Grid>
-
-          <Button onClick={() => navigate("/employees")}>Back to employees</Button>
         </Stack>
       </Paper>
+      <DeleteEmployeeDialog
+        open={deleteOpen}
+        loading={deleting}
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }
