@@ -14,8 +14,8 @@ RSpec.describe Api::V1::JobTitlesController, type: :controller do
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to eq([
-        { "id" => engineer.id, "name" => "Engineer" },
-        { "id" => JobTitle.find_by!(name: "Manager").id, "name" => "Manager" }
+        { "id" => engineer.id, "name" => "Engineer", "employee_count" => 0 },
+        { "id" => JobTitle.find_by!(name: "Manager").id, "name" => "Manager", "employee_count" => 0 }
       ])
     end
   end

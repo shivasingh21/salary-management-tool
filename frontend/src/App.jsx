@@ -3,10 +3,12 @@ import AppLayout from "./components/layout/AppLayout.jsx";
 import ProtectedRoute from "./components/routing/ProtectedRoute.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import EmployeeForm from "./pages/EmployeeForm.jsx";
+import EmployeeShow from "./pages/EmployeeShow.jsx";
 import Employees from "./pages/Employees.jsx";
 import Login from "./pages/Login.jsx";
 import LookupForm from "./pages/LookupForm.jsx";
 import LookupIndex from "./pages/LookupIndex.jsx";
+import Profile from "./pages/Profile.jsx";
 
 function App() {
   return (
@@ -18,7 +20,9 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/employees" element={<Employees />} />
         <Route path="/employees/new" element={<EmployeeForm />} />
+        <Route path="/employees/:id" element={<EmployeeShow />} />
         <Route path="/employees/:id/edit" element={<EmployeeForm />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/departments" element={<LookupIndex resource="departments" />} />
         <Route path="/departments/new" element={<LookupForm resource="departments" />} />
         <Route path="/job-titles" element={<LookupIndex resource="jobTitles" />} />

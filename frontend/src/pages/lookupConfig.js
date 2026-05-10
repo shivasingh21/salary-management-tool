@@ -7,7 +7,10 @@ import {
   deleteJobTitle,
   listCountries,
   listDepartments,
-  listJobTitles
+  listJobTitles,
+  updateCountry,
+  updateDepartment,
+  updateJobTitle
 } from "../api/lookups.js";
 
 const lookupConfig = {
@@ -19,6 +22,7 @@ const lookupConfig = {
     newPath: "/departments/new",
     list: listDepartments,
     create: createDepartment,
+    update: updateDepartment,
     delete: deleteDepartment
   },
   jobTitles: {
@@ -29,6 +33,7 @@ const lookupConfig = {
     newPath: "/job-titles/new",
     list: listJobTitles,
     create: createJobTitle,
+    update: updateJobTitle,
     delete: deleteJobTitle
   },
   countries: {
@@ -39,6 +44,7 @@ const lookupConfig = {
     newPath: "/countries/new",
     list: listCountries,
     create: createCountry,
+    update: updateCountry,
     delete: deleteCountry
   }
 };

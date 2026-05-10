@@ -1,13 +1,16 @@
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
 import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { createEmployee, getEmployee, updateEmployee } from "../api/employees.js";
+import { createEmployee, deleteEmployee, getEmployee, updateEmployee } from "../api/employees.js";
 import { listCountries, listDepartments, listJobTitles } from "../api/lookups.js";
 import PageHeader from "../components/common/PageHeader.jsx";
 
@@ -17,7 +20,8 @@ const initialForm = {
   job_title_id: "",
   country_id: "",
   salary: "",
-  joining_date: ""
+  joining_date: "",
+  status: "active"
 };
 
 function EmployeeForm() {
@@ -43,7 +47,8 @@ function EmployeeForm() {
         job_title_id: employee.job_title?.id || "",
         country_id: employee.country?.id || "",
         salary: employee.salary || "",
-        joining_date: employee.joining_date || ""
+        joining_date: employee.joining_date || "",
+        status: employee.status || "active"
       });
     }).catch(() => setError("Unable to load employee."));
   }, [id]);
@@ -68,9 +73,24 @@ function EmployeeForm() {
     }
   }
 
+  async function handleDelete() {
+    await deleteEmployee(id);
+    navigate("/employees");
+  }
+
   return (
     <>
-      <PageHeader title={id ? "Edit Employee" : "New Employee"} subtitle="Manage salary, location, department, and job assignment." />
+      <PageHeader
+        title={id ? "Edit Employee" : "New Employee"}
+        subtitle="Manage salary, location, department, job assignment, and status."
+        action={id ? (
+          <Tooltip title="Delete employee">
+            <IconButton color="error" onClick={handleDelete}>
+              <DeleteOutlineIcon />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+      />
 
       <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3, maxWidth: 900, border: "1px solid", borderColor: "divider" }}>
         {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
@@ -83,6 +103,13 @@ function EmployeeForm() {
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField fullWidth required label="Joining Date" name="joining_date" type="date" value={form.joining_date} onChange={handleChange} InputLabelProps={{ shrink: true }} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField select fullWidth required label="Status" name="status" value={form.status} onChange={handleChange}>
+              <MenuItem value="onboarded">Onboarded</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
+            </TextField>
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField select fullWidth required label="Department" name="department_id" value={form.department_id} onChange={handleChange}>

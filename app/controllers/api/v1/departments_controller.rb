@@ -2,10 +2,22 @@ module Api
   module V1
     class DepartmentsController < Api::V1::BaseController
       before_action :authenticate_hr_user!
-      before_action :set_department, only: :destroy
+      before_action :set_department, only: %i[update destroy]
 
       def index
-        render json: Department.order(:name).map { |department| department_response(department) }
+        render json: Department.left_joins(:employees)
+          .select("departments.*, COUNT(employees.id) AS employees_count")
+          .group("departments.id")
+          .order(:name)
+          .map { |department| department_response(department) }
+      end
+
+      def update
+        if @department.update(department_params)
+          render json: department_response(@department)
+        else
+          render json: { errors: @department.errors.to_hash }, status: :unprocessable_content
+        end
       end
 
       def create
@@ -41,7 +53,8 @@ module Api
       def department_response(department)
         {
           id: department.id,
-          name: department.name
+          name: department.name,
+          employee_count: department.try(:employees_count).to_i
         }
       end
     end

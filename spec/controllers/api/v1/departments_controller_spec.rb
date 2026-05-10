@@ -14,8 +14,8 @@ RSpec.describe Api::V1::DepartmentsController, type: :controller do
 
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to eq([
-        { "id" => engineering.id, "name" => "Engineering" },
-        { "id" => Department.find_by!(name: "Sales").id, "name" => "Sales" }
+        { "id" => engineering.id, "name" => "Engineering", "employee_count" => 0 },
+        { "id" => Department.find_by!(name: "Sales").id, "name" => "Sales", "employee_count" => 0 }
       ])
     end
   end

@@ -4,6 +4,10 @@ class Employee < ApplicationRecord
   belongs_to :job_title
   belongs_to :country
 
+  enum :status, { onboarded: 0, active: 1, inactive: 2 }, prefix: true
+
+  before_validation :sync_active_from_status
+
   validates :salary, :joining_date, presence: true
   validates :salary, numericality: { greater_than: 0 }
   validates :active, inclusion: { in: [ true, false ] }
@@ -18,5 +22,11 @@ class Employee < ApplicationRecord
 
   def email
     user&.email
+  end
+
+  private
+
+  def sync_active_from_status
+    self.active = !status_inactive? if will_save_change_to_status?
   end
 end

@@ -4,10 +4,11 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get "health", to: "health#show"
-      resources :countries, only: %i[index create destroy]
-      resources :departments, only: %i[index create destroy]
+      resources :countries, only: %i[index create update destroy]
+      resources :departments, only: %i[index create update destroy]
       resources :employees
-      resources :job_titles, only: %i[index create destroy]
+      resources :job_titles, only: %i[index create update destroy]
+      resource :profile, only: %i[show update]
 
       namespace :insights do
         get "country_salaries", to: "salary_insights#country_salaries"
