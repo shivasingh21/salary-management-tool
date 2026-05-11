@@ -56,16 +56,9 @@ A full-stack salary management and HR analytics application. The backend is a Ra
 └── frontend/               # React + Vite frontend application
 ```
 
-## Setup Instructions
+## Following Setup Steps
 
-### Prerequisites
-
-- Ruby 3.3.6
-- Bundler
-- PostgreSQL
-- Node.js and npm
-
-### Backend Setup
+Install Ruby version `3.3.6`.
 
 Install Ruby dependencies from the project root:
 
@@ -73,25 +66,15 @@ Install Ruby dependencies from the project root:
 bundle install
 ```
 
-Create and migrate the database:
+Create `config/master.key`, then paste the key shared in mail.
+
+Open the Rails credentials file:
 
 ```sh
-bin/rails db:create db:migrate
+EDITOR=nano rails credentials:edit
 ```
 
-Seed local data:
-
-```sh
-bin/rails db:seed
-```
-
-Start the Rails API on port `3001`:
-
-```sh
-bin/rails server -p 3001
-```
-
-### Frontend Setup
+Then add the database credentials using the example format from `config/credentials.example.yml`.
 
 Install frontend dependencies:
 
@@ -100,13 +83,20 @@ cd frontend
 npm install
 ```
 
-Start the Vite dev server:
+Return to the project root and setup the database:
 
 ```sh
-npm run dev
+cd ..
+rails db:setup
 ```
 
-The frontend runs at `http://localhost:3000`. Vite proxies `/api` requests to the Rails API at `http://localhost:3001`.
+Start the Rails and frontend dev server on port `3000` using:
+
+```sh
+bin/rails server
+```
+
+Open `http://localhost:3000` to check project
 
 # OpenAPI Documentation
 
