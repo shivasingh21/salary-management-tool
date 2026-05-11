@@ -245,8 +245,15 @@ function Employees() {
               <TableRow key={employee.id} hover sx={{ bgcolor: index % 2 === 0 ? "background.paper" : "rgba(16, 24, 40, 0.04)" }}>
                 <TableCell>{employee.id}</TableCell>
                 <TableCell>
-                  <Box sx={{ alignItems: "center", display: "inline-flex", gap: 0.75, maxWidth: "100%" }}>
-                    <Typography fontWeight={700}>{employee.full_name || "Unassigned"}</Typography>
+                  <Box sx={{ alignItems: "center", display: "flex", gap: 0.75, maxWidth: "100%", minWidth: 0 }}>
+                    <Typography
+                      fontWeight={700}
+                      noWrap
+                      title={employee.full_name || "Unassigned"}
+                      sx={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}
+                    >
+                      {employee.full_name || "Unassigned"}
+                    </Typography>
                     <Box
                       aria-label={employee.status || "active"}
                       title={statusLabel(employee.status)}

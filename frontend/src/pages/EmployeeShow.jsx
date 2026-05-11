@@ -86,12 +86,17 @@ function EmployeeShow() {
         }}
       >
         <Stack spacing={2.5}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Typography variant="h5">{employee?.full_name || "Employee"}</Typography>
+          <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={2}>
+            <Typography
+              variant="h5"
+              sx={{ minWidth: 0, overflowWrap: "anywhere", wordBreak: "break-word" }}
+            >
+              {employee?.full_name || "Employee"}
+            </Typography>
             <Chip
               label={statusLabel(employee?.status)}
               color={statusColor(employee?.status)}
-              sx={{ textTransform: "capitalize" }}
+              sx={{ flex: "0 0 auto", textTransform: "capitalize" }}
             />
           </Stack>
 
@@ -103,10 +108,10 @@ function EmployeeShow() {
               <TextField fullWidth label="Date of Joining" value={employee?.joining_date || ""} InputProps={{ readOnly: true }} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Name" value={employee?.full_name || ""} InputProps={{ readOnly: true }} />
+              <TextField fullWidth multiline label="Name" value={employee?.full_name || ""} InputProps={{ readOnly: true }} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Email" value={employee?.email || ""} InputProps={{ readOnly: true }} />
+              <TextField fullWidth multiline label="Email" value={employee?.email || ""} InputProps={{ readOnly: true }} />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField fullWidth label="Job Title" value={employee?.job_title?.name || ""} InputProps={{ readOnly: true }} />

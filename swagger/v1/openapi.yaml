@@ -43,14 +43,17 @@ components:
         first_name:
           type: string
           nullable: true
+          maxLength: 50
           example: Priya
         last_name:
           type: string
           nullable: true
+          maxLength: 50
           example: Rao
         email:
           type: string
           format: email
+          maxLength: 50
           example: hr@example.com
         role:
           type: string
@@ -71,6 +74,7 @@ components:
         email:
           type: string
           format: email
+          maxLength: 50
           example: hr@example.com
         password:
           type: string
@@ -105,10 +109,12 @@ components:
         first_name:
           type: string
           nullable: true
+          maxLength: 50
           example: Priya
         last_name:
           type: string
           nullable: true
+          maxLength: 50
           example: Rao
         full_name:
           type: string
@@ -117,6 +123,7 @@ components:
           type: string
           format: email
           nullable: true
+          maxLength: 50
           example: priya.rao@example.com
         department:
           "$ref": "#/components/schemas/Lookup"
@@ -165,13 +172,16 @@ components:
       properties:
         first_name:
           type: string
+          maxLength: 50
           example: Priya
         last_name:
           type: string
+          maxLength: 50
           example: Rao
         email:
           type: string
           format: email
+          maxLength: 50
           example: priya.rao@example.com
         department_id:
           type: integer
@@ -213,13 +223,16 @@ components:
       properties:
         first_name:
           type: string
+          maxLength: 50
           example: Priya
         last_name:
           type: string
+          maxLength: 50
           example: Rao
         email:
           type: string
           format: email
+          maxLength: 50
           example: priya.rao@example.com
         department_id:
           type: integer

@@ -213,6 +213,26 @@ RSpec.describe "Api::V1::Employees", type: :request do
       expect(response.parsed_body.dig("errors", "salary")).to include("must be greater than 0")
     end
 
+    it "returns validation errors for invalid user fields" do
+      post "/api/v1/employees", params: {
+        employee: {
+          first_name: "a" * 51,
+          last_name: "b" * 51,
+          email: "invalid-email",
+          department_id: department.id,
+          job_title_id: job_title.id,
+          country_id: country.id,
+          salary: "120000.00",
+          joining_date: "2026-05-08"
+        }
+      }, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("errors", "first_name")).to include("is too long (maximum is 50 characters)")
+      expect(response.parsed_body.dig("errors", "last_name")).to include("is too long (maximum is 50 characters)")
+      expect(response.parsed_body.dig("errors", "email")).to include("must be a valid email address")
+    end
+
     it "does not accept user_id" do
       existing_user = create(:user, :employee)
 
