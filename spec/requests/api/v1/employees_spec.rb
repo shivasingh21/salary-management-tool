@@ -104,6 +104,19 @@ RSpec.describe "Api::V1::Employees", type: :request do
       expect(response.media_type).to eq("application/json")
     end
 
+    it "authenticates with the sign-in cookie" do
+      employee = create(:employee, department: department, job_title: job_title, country: country)
+
+      post "/api/v1/auth/sign_in", params: {
+        email: hr_user.email,
+        password: hr_user.password
+      }
+      get "/api/v1/employees"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"].first["id"]).to eq(employee.id)
+    end
+
     it "rejects employee users" do
       get "/api/v1/employees", headers: auth_headers(employee_user)
 

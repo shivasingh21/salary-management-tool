@@ -79,15 +79,78 @@
     var configObject = JSON.parse('<%= config_object.to_json %>');
     var oauthConfigObject = JSON.parse('<%= oauth_config_object.to_json %>');
     var bearerTokenStorageKey = "salary-management.swagger.jwt";
+    var appTokenStorageKey = "authToken";
+    var swaggerAuthorizedStorageKey = "authorized";
+
+    function readStoredValue(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function writeStoredValue(key, value) {
+      try {
+        window.localStorage.setItem(key, value);
+      } catch (_error) {
+        // Ignore storage errors so Swagger requests can still continue.
+      }
+    }
+
+    function removeStoredValue(key) {
+      try {
+        window.localStorage.removeItem(key);
+      } catch (_error) {
+        // Ignore storage errors so sign-out responses are not interrupted.
+      }
+    }
 
     function storedBearerToken() {
-      return window.localStorage.getItem(bearerTokenStorageKey);
+      return normalizeBearerToken(
+        readStoredValue(bearerTokenStorageKey) ||
+        readStoredValue(appTokenStorageKey) ||
+        storedSwaggerAuthorizedToken()
+      );
     }
 
     function normalizeBearerToken(token) {
       if (!token) return null;
 
       return token.match(/^Bearer\s+/i) ? token : "Bearer " + token;
+    }
+
+    function rawBearerToken(token) {
+      if (!token) return null;
+
+      return token.replace(/^Bearer\s+/i, "");
+    }
+
+    function storedSwaggerAuthorizedToken() {
+      var authorized = readStoredValue(swaggerAuthorizedStorageKey);
+      if (!authorized) return null;
+
+      try {
+        var parsed = JSON.parse(authorized);
+        return parsed.bearerAuth && parsed.bearerAuth.value;
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function persistBearerToken(token) {
+      var normalizedToken = normalizeBearerToken(token);
+      var rawToken = rawBearerToken(normalizedToken);
+      if (!normalizedToken || !rawToken) return;
+
+      writeStoredValue(bearerTokenStorageKey, normalizedToken);
+      writeStoredValue(appTokenStorageKey, rawToken);
+    }
+
+    function clearStoredBearerToken() {
+      removeStoredValue(bearerTokenStorageKey);
+      removeStoredValue(appTokenStorageKey);
+      removeStoredValue(swaggerAuthorizedStorageKey);
     }
 
     function responseUrl(response) {
@@ -124,16 +187,15 @@
       var authHeader = responseHeader(response, "Authorization");
       var body = responseBody(response);
       var token = authHeader || body && body.token;
-      token = normalizeBearerToken(token);
 
-      if (token) window.localStorage.setItem(bearerTokenStorageKey, token);
+      persistBearerToken(token);
     }
 
     function clearBearerToken(response) {
       var url = responseUrl(response);
       var status = responseStatus(response);
       if (url.includes("/api/v1/auth/sign_out") && status >= 200 && status < 300) {
-        window.localStorage.removeItem(bearerTokenStorageKey);
+        clearStoredBearerToken();
       }
     }
 
