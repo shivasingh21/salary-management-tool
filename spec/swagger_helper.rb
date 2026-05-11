@@ -59,9 +59,9 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               id: { type: :integer, example: 1 },
-              first_name: { type: :string, nullable: true, example: "Priya" },
-              last_name: { type: :string, nullable: true, example: "Rao" },
-              email: { type: :string, format: :email, example: "hr@example.com" },
+              first_name: { type: :string, nullable: true, maxLength: 50, example: "Priya" },
+              last_name: { type: :string, nullable: true, maxLength: 50, example: "Rao" },
+              email: { type: :string, format: :email, maxLength: 50, example: "hr@example.com" },
               role: { type: :string, enum: %w[hr employee], example: "hr" },
               last_sign_in_at: { type: :string, format: "date-time", nullable: true }
             }
@@ -70,7 +70,7 @@ RSpec.configure do |config|
             type: :object,
             required: %w[email password],
             properties: {
-              email: { type: :string, format: :email, example: "hr@example.com" },
+              email: { type: :string, format: :email, maxLength: 50, example: "hr@example.com" },
               password: { type: :string, format: :password, example: "password123" }
             }
           },
@@ -93,10 +93,10 @@ RSpec.configure do |config|
             properties: {
               id: { type: :integer, example: 1 },
               user_id: { type: :integer, example: 12 },
-              first_name: { type: :string, nullable: true, example: "Priya" },
-              last_name: { type: :string, nullable: true, example: "Rao" },
+              first_name: { type: :string, nullable: true, maxLength: 50, example: "Priya" },
+              last_name: { type: :string, nullable: true, maxLength: 50, example: "Rao" },
               full_name: { type: :string, example: "Priya Rao" },
-              email: { type: :string, format: :email, nullable: true, example: "priya.rao@example.com" },
+              email: { type: :string, format: :email, nullable: true, maxLength: 50, example: "priya.rao@example.com" },
               department: { "$ref" => "#/components/schemas/Lookup" },
               job_title: { "$ref" => "#/components/schemas/Lookup" },
               country: { "$ref" => "#/components/schemas/Lookup" },
@@ -113,9 +113,9 @@ RSpec.configure do |config|
             type: :object,
             required: %w[first_name last_name email department_id job_title_id country_id salary joining_date],
             properties: {
-              first_name: { type: :string, example: "Priya" },
-              last_name: { type: :string, example: "Rao" },
-              email: { type: :string, format: :email, example: "priya.rao@example.com" },
+              first_name: { type: :string, maxLength: 50, example: "Priya" },
+              last_name: { type: :string, maxLength: 50, example: "Rao" },
+              email: { type: :string, format: :email, maxLength: 50, example: "priya.rao@example.com" },
               department_id: { type: :integer, example: 1 },
               job_title_id: { type: :integer, example: 1 },
               country_id: { type: :integer, example: 1 },
@@ -129,9 +129,9 @@ RSpec.configure do |config|
             type: :object,
             required: %w[first_name last_name email department_id job_title_id salary joining_date status],
             properties: {
-              first_name: { type: :string, example: "Priya" },
-              last_name: { type: :string, example: "Rao" },
-              email: { type: :string, format: :email, example: "priya.rao@example.com" },
+              first_name: { type: :string, maxLength: 50, example: "Priya" },
+              last_name: { type: :string, maxLength: 50, example: "Rao" },
+              email: { type: :string, format: :email, maxLength: 50, example: "priya.rao@example.com" },
               department_id: { type: :integer, example: 1 },
               job_title_id: { type: :integer, example: 1 },
               salary: { type: :string, example: "120000.00" },

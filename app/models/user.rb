@@ -14,7 +14,11 @@ class User < ApplicationRecord
   before_validation :ensure_jti
 
   validates :first_name, :last_name, :role, presence: true
-  validates :email, uniqueness: { case_sensitive: false }
+  validates :first_name, :last_name, length: { maximum: 50 }
+  validates :email,
+    uniqueness: { case_sensitive: false },
+    length: { maximum: 50 },
+    format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }
 
   private
 
