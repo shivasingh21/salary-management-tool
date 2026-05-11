@@ -19,6 +19,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
+import TableSortLabel from "@mui/material/TableSortLabel";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
@@ -62,6 +63,11 @@ function formatErrors(error) {
     .join(". ");
 }
 
+const lookupTableColumns = [
+  { key: "name", label: "Name", width: "33.33%", value: (record) => record.name || "" },
+  { key: "employee_count", label: "Employees", width: "33.33%", value: (record) => Number(record.employee_count || 0), type: "number" }
+];
+
 function LookupIndex({ resource }) {
   const config = lookupConfig[resource];
   const [records, setRecords] = useState([]);
@@ -71,6 +77,8 @@ function LookupIndex({ resource }) {
   const [name, setName] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
+  const [orderBy, setOrderBy] = useState("name");
+  const [order, setOrder] = useState("asc");
   const [actionLocked, setActionLocked] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -157,7 +165,31 @@ function LookupIndex({ resource }) {
 
     return records.filter((record) => record.name.toLowerCase().includes(query));
   }, [records, search]);
-  const visibleRecords = filteredRecords.slice(page * 20, page * 20 + 20);
+  const sortedRecords = useMemo(() => {
+    const direction = order === "asc" ? 1 : -1;
+    const column = lookupTableColumns.find((currentColumn) => currentColumn.key === orderBy);
+    if (!column) return filteredRecords;
+
+    return [...filteredRecords].sort((first, second) => {
+      const firstValue = column.value(first);
+      const secondValue = column.value(second);
+
+      if (column.type === "number") {
+        return (Number(firstValue || 0) - Number(secondValue || 0)) * direction;
+      }
+
+      return String(firstValue).localeCompare(String(secondValue)) * direction;
+    });
+  }, [filteredRecords, order, orderBy]);
+  const visibleRecords = sortedRecords.slice(page * 20, page * 20 + 20);
+
+  function handleSort(columnKey) {
+    const nextOrder = orderBy === columnKey && order === "asc" ? "desc" : "asc";
+
+    setOrderBy(columnKey);
+    setOrder(nextOrder);
+    setPage(0);
+  }
 
   return (
     <>
@@ -195,8 +227,17 @@ function LookupIndex({ resource }) {
             <Table sx={{ tableLayout: "fixed" }}>
               <TableHead>
                 <TableRow>
-                  <TableCell align="left" sx={{ ...headerCellSx, width: "33.33%" }}>Name</TableCell>
-                  <TableCell align="left" sx={{ ...headerCellSx, width: "33.33%" }}>Employees</TableCell>
+                  {lookupTableColumns.map((column) => (
+                    <TableCell key={column.key} align="left" sx={{ ...headerCellSx, width: column.width }}>
+                      <TableSortLabel
+                        active={orderBy === column.key}
+                        direction={orderBy === column.key ? order : "asc"}
+                        onClick={() => handleSort(column.key)}
+                      >
+                        {column.label}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
                   <TableCell align="left" sx={{ ...headerCellSx, width: "33.33%" }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -210,7 +251,7 @@ function LookupIndex({ resource }) {
                     <TableCell align="left">
                       <Tooltip title={`Edit ${config.singular.toLowerCase()}`}>
                         <IconButton onClick={() => openDialog(record)} disabled={actionLocked || deletingId === record.id}>
-                          <EditIcon />
+                          <EditIcon sx={{ color: "#101083ff" }} />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title={`Delete ${config.singular.toLowerCase()}`}>
@@ -236,7 +277,7 @@ function LookupIndex({ resource }) {
           >
             <TablePagination
               component="div"
-              count={filteredRecords.length}
+              count={sortedRecords.length}
               page={page}
               rowsPerPage={20}
               rowsPerPageOptions={[20]}

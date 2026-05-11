@@ -54,6 +54,17 @@ RSpec.describe "Api::V1::Employees", type: :request do
       )
     end
 
+    it "returns the latest created employee first" do
+      older_employee = create(:employee, created_at: 2.days.ago)
+      latest_employee = create(:employee, created_at: 1.day.ago)
+
+      get "/api/v1/employees", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"].first["id"]).to eq(latest_employee.id)
+      expect(response.parsed_body["data"].second["id"]).to eq(older_employee.id)
+    end
+
     it "filters employees by fields" do
       engineer = create(:job_title, name: "Engineer")
       designer = create(:job_title, name: "Designer")
@@ -130,42 +141,46 @@ RSpec.describe "Api::V1::Employees", type: :request do
 
   describe "POST /api/v1/employees" do
     it "creates an employee" do
-      user = create(:user, :employee)
-
       expect {
         post "/api/v1/employees", params: {
           employee: {
-            user_id: user.id,
             department_id: department.id,
             job_title_id: job_title.id,
             country_id: country.id,
             salary: "120000.00",
             joining_date: "2026-05-08",
             first_name: "Priya",
-            last_name: "Rao"
+            last_name: "Rao",
+            email: "priya.rao@example.com"
           }
         }, headers: headers
       }.to change(Employee, :count).by(1)
+        .and change { User.employee.count }.by(1)
 
       expect(response).to have_http_status(:created)
+      created_user = User.find_by!(email: "priya.rao@example.com")
       expect(response.parsed_body).to include(
-        "user_id" => user.id,
+        "user_id" => created_user.id,
         "full_name" => "Priya Rao",
-        "email" => user.email,
+        "email" => "priya.rao@example.com",
         "active" => true
       )
-      expect(user.reload.first_name).to eq("Priya")
-      expect(user.last_name).to eq("Rao")
+      expect(created_user.first_name).to eq("Priya")
+      expect(created_user.last_name).to eq("Rao")
+      expect(created_user).to be_employee
     end
 
-    it "allows reusing a user from a deleted employee" do
+    it "allows reusing an email from a deleted employee" do
       user = create(:user, :employee)
       create(:employee, user: user, deleted_at: Time.current)
+      user.reload
 
       expect {
         post "/api/v1/employees", params: {
           employee: {
-            user_id: user.id,
+            first_name: "Avery",
+            last_name: "Stone",
+            email: user.email,
             department_id: department.id,
             job_title_id: job_title.id,
             country_id: country.id,
@@ -174,6 +189,7 @@ RSpec.describe "Api::V1::Employees", type: :request do
           }
         }, headers: headers
       }.to change(Employee.not_deleted, :count).by(1)
+        .and change { User.employee.count }.by(0)
 
       expect(response).to have_http_status(:created)
       expect(response.parsed_body["user_id"]).to eq(user.id)
@@ -186,12 +202,37 @@ RSpec.describe "Api::V1::Employees", type: :request do
           job_title_id: job_title.id,
           country_id: country.id,
           salary: "0",
-          joining_date: "2026-05-08"
+          joining_date: "2026-05-08",
+          first_name: "Priya",
+          last_name: "Rao",
+          email: "priya.rao@example.com"
         }
       }, headers: headers
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body.dig("errors", "salary")).to include("must be greater than 0")
+    end
+
+    it "does not accept user_id" do
+      existing_user = create(:user, :employee)
+
+      post "/api/v1/employees", params: {
+        employee: {
+          user_id: existing_user.id,
+          department_id: department.id,
+          job_title_id: job_title.id,
+          country_id: country.id,
+          salary: "120000.00",
+          joining_date: "2026-05-08",
+          first_name: "Nisha",
+          last_name: "Shah",
+          email: "nisha.shah@example.com"
+        }
+      }, headers: headers
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body["user_id"]).not_to eq(existing_user.id)
+      expect(response.parsed_body["email"]).to eq("nisha.shah@example.com")
     end
   end
 
@@ -199,13 +240,19 @@ RSpec.describe "Api::V1::Employees", type: :request do
     it "updates an employee" do
       employee = create(:employee)
       new_department = create(:department, name: "Finance")
+      new_country = create(:country, name: "Canada")
+      other_user = create(:user, :employee)
 
       patch "/api/v1/employees/#{employee.id}", params: {
         employee: {
+          user_id: other_user.id,
           department_id: new_department.id,
+          country_id: new_country.id,
           salary: "130000.00",
           first_name: "Jordan",
-          last_name: "Miles"
+          last_name: "Miles",
+          email: "jordan.miles@example.com",
+          active: false
         }
       }, headers: headers
 
@@ -213,8 +260,34 @@ RSpec.describe "Api::V1::Employees", type: :request do
       expect(response.parsed_body.dig("department", "name")).to eq("Finance")
       expect(response.parsed_body["salary"]).to eq("130000.0")
       expect(employee.reload.department).to eq(new_department)
+      expect(employee.country).not_to eq(new_country)
+      expect(employee.user).not_to eq(other_user)
+      expect(employee.active).to be(true)
       expect(employee.user.reload.first_name).to eq("Jordan")
       expect(employee.user.last_name).to eq("Miles")
+      expect(employee.user.email).to eq("jordan.miles@example.com")
+    end
+
+    it "returns validation errors for blank user fields" do
+      employee = create(:employee)
+
+      patch "/api/v1/employees/#{employee.id}", params: {
+        employee: {
+          first_name: "",
+          last_name: "",
+          email: "",
+          salary: "130000.00",
+          joining_date: "2026-05-08",
+          department_id: employee.department_id,
+          job_title_id: employee.job_title_id,
+          status: "active"
+        }
+      }, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("errors", "first_name")).to include("can't be blank")
+      expect(response.parsed_body.dig("errors", "last_name")).to include("can't be blank")
+      expect(response.parsed_body.dig("errors", "email")).to include("can't be blank")
     end
   end
 

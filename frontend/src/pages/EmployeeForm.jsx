@@ -16,9 +16,9 @@ import PageHeader from "../components/common/PageHeader.jsx";
 import DeleteEmployeeDialog from "../components/employees/DeleteEmployeeDialog.jsx";
 
 const initialForm = {
-  user_id: "",
   first_name: "",
   last_name: "",
+  email: "",
   department_id: "",
   job_title_id: "",
   country_id: "",
@@ -47,9 +47,9 @@ function EmployeeForm() {
 
     getEmployee(id).then((employee) => {
       setForm({
-        user_id: employee.user_id || "",
         first_name: employee.first_name || "",
         last_name: employee.last_name || "",
+        email: employee.email || "",
         department_id: employee.department?.id || "",
         job_title_id: employee.job_title?.id || "",
         country_id: employee.country?.id || "",
@@ -67,17 +67,31 @@ function EmployeeForm() {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
+  function editPayload() {
+    return {
+      first_name: form.first_name,
+      last_name: form.last_name,
+      email: form.email,
+      salary: form.salary,
+      joining_date: form.joining_date,
+      department_id: form.department_id,
+      job_title_id: form.job_title_id,
+      status: form.status
+    };
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
 
     try {
       if (id) {
-        await updateEmployee(id, form);
+        await updateEmployee(id, editPayload());
+        navigate(`/employees/${id}`);
       } else {
         await createEmployee(form);
+        navigate("/employees");
       }
-      navigate("/employees");
     } catch {
       setError("Unable to save employee. Check the required fields and API token.");
     }
@@ -120,23 +134,14 @@ function EmployeeForm() {
       >
         {error ? <Typography color="error" sx={{ mb: 2 }}>{error}</Typography> : null}
         <Grid container spacing={2}>
-          {id ? (
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Employee ID" value={id} InputProps={{ readOnly: true }} />
-            </Grid>
-          ) : (
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth required label="User ID" name="user_id" value={form.user_id} onChange={handleChange} />
-            </Grid>
-          )}
-          <Grid item xs={12} md={6}>
-            <TextField fullWidth required label="Date of Joining" name="joining_date" type="date" value={form.joining_date} onChange={handleChange} InputLabelProps={{ shrink: true }} />
-          </Grid>
           <Grid item xs={12} md={6}>
             <TextField fullWidth required label="First Name" name="first_name" value={form.first_name} onChange={handleChange} />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField fullWidth required label="Last Name" name="last_name" value={form.last_name} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField fullWidth required label="Email" name="email" type="email" value={form.email} onChange={handleChange} />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField select fullWidth required label="Job Title" name="job_title_id" value={form.job_title_id} onChange={handleChange}>
@@ -148,26 +153,31 @@ function EmployeeForm() {
               {lookups.departments.map((department) => <MenuItem key={department.id} value={department.id}>{department.name}</MenuItem>)}
             </TextField>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField select fullWidth required label="Country" name="country_id" value={form.country_id} onChange={handleChange}>
-              {lookups.countries.map((country) => <MenuItem key={country.id} value={country.id}>{country.name}</MenuItem>)}
-            </TextField>
-          </Grid>
+          {!id ? (
+            <Grid item xs={12} md={6}>
+              <TextField select fullWidth required label="Country" name="country_id" value={form.country_id} onChange={handleChange}>
+                {lookups.countries.map((country) => <MenuItem key={country.id} value={country.id}>{country.name}</MenuItem>)}
+              </TextField>
+            </Grid>
+          ) : null}
           <Grid item xs={12} md={6}>
             <TextField fullWidth required label="Salary" name="salary" type="number" value={form.salary} onChange={handleChange} />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField select fullWidth required label="Status" name="status" value={form.status} onChange={handleChange}>
-              <MenuItem value="onboarded">Onboarding</MenuItem>
+              <MenuItem value="onboarding">Onboarding</MenuItem>
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="inactive">Inactive</MenuItem>
             </TextField>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField fullWidth required label="Date of Joining" name="joining_date" type="date" value={form.joining_date} onChange={handleChange} InputLabelProps={{ shrink: true }} />
           </Grid>
         </Grid>
 
         <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 3 }}>
           <Button onClick={() => navigate("/employees")}>Cancel</Button>
-          <Button type="submit" variant="contained" sx={{ bgcolor: "#101828", "&:hover": { bgcolor: "#1d2939" } }}>
+          <Button type="submit" variant="contained" sx={{ bgcolor: "#101083ff", "&:hover": { bgcolor: "#475467" } }}>
             {id ? "Save changes" : "Save employee"}
           </Button>
         </Stack>

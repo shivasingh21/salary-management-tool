@@ -63,12 +63,12 @@ function Profile() {
               size="small"
               onClick={() => setEditing(true)}
               sx={{
-                bgcolor: "primary.main",
-                color: "common.white",
+                bgcolor: "common.white",
+                color: "#101083ff",
                 position: "absolute",
                 right: -4,
                 bottom: 4,
-                "&:hover": { bgcolor: "primary.dark" }
+                "&:hover": { bgcolor: "rgba(16, 16, 131, 0.08)" }
               }}
             >
               <EditIcon fontSize="small" />

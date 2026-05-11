@@ -16,12 +16,12 @@ import DeleteEmployeeDialog from "../components/employees/DeleteEmployeeDialog.j
 
 function statusColor(status) {
   if (status === "active") return "success";
-  if (status === "onboarded") return "info";
+  if (status === "onboarding") return "info";
   return "default";
 }
 
 function statusLabel(status) {
-  if (status === "onboarded") return "Onboarding";
+  if (status === "onboarding") return "Onboarding";
   if (status === "inactive") return "Inactive";
   return "Active";
 }

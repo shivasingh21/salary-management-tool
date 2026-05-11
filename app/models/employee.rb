@@ -4,7 +4,7 @@ class Employee < ApplicationRecord
   belongs_to :job_title
   belongs_to :country
 
-  enum :status, { onboarded: 0, active: 1, inactive: 2 }, prefix: true
+  enum :status, { onboarding: 0, active: 1, inactive: 2 }, prefix: true
 
   before_validation :sync_active_from_status
 
