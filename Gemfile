@@ -18,6 +18,8 @@ gem "rack-cors"
 gem "devise"
 gem "devise-jwt"
 gem "faker"
+gem "rswag-api"
+gem "rswag-ui"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -34,6 +36,7 @@ group :development, :test do
 
   gem "factory_bot_rails"
   gem "rspec-rails"
+  gem "rswag-specs"
   gem "shoulda-matchers"
   gem "simplecov", require: false
 end

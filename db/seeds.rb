@@ -125,7 +125,7 @@ module SeedData
   end
 
   def random_status
-    Faker::Base.sample(%w[onboarded active active active inactive])
+    Faker::Base.sample(%w[onboarding active active active inactive])
   end
 
   def random_id_between(ids)

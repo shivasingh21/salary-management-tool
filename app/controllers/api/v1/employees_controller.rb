@@ -12,7 +12,7 @@ module Api
 
         render json: {
           data: employees.includes(:user, :department, :job_title, :country)
-            .order(:id)
+            .order(created_at: :desc, id: :desc)
             .offset((page - 1) * per_page)
             .limit(per_page)
             .map { |employee| employee_response(employee) },
@@ -30,20 +30,20 @@ module Api
       end
 
       def create
-        employee = Employee.new(employee_params)
+        employee = Employee.new(create_employee_params)
 
-        if save_employee(employee)
+        if create_employee(employee)
           render json: employee_response(employee), status: :created
         else
-          render json: { errors: employee.errors.to_hash }, status: :unprocessable_content
+          render json: { errors: validation_errors(employee) }, status: :unprocessable_content
         end
       end
 
       def update
-        if save_employee(@employee)
+        if save_employee(@employee, update_employee_params)
           render json: employee_response(@employee)
         else
-          render json: { errors: @employee.errors.to_hash }, status: :unprocessable_content
+          render json: { errors: validation_errors(@employee) }, status: :unprocessable_content
         end
       end
 
@@ -61,9 +61,8 @@ module Api
         render json: { error: "Employee not found" }, status: :not_found
       end
 
-      def employee_params
+      def create_employee_params
         params.fetch(:employee, params).permit(
-          :user_id,
           :department_id,
           :job_title_id,
           :country_id,
@@ -74,27 +73,73 @@ module Api
         )
       end
 
-      def employee_user_params
-        params.fetch(:employee, params).permit(:first_name, :last_name)
+      def update_employee_params
+        params.fetch(:employee, params).permit(
+          :department_id,
+          :job_title_id,
+          :salary,
+          :joining_date,
+          :status
+        )
       end
 
-      def save_employee(employee)
+      def employee_user_params
+        params.fetch(:employee, params).permit(:first_name, :last_name, :email)
+      end
+
+      def save_employee(employee, permitted_employee_params)
         Employee.transaction do
-          employee.assign_attributes(employee_params)
+          employee.assign_attributes(permitted_employee_params)
           employee.save!
           update_employee_user(employee)
         end
 
         true
-      rescue ActiveRecord::RecordInvalid
+      rescue ActiveRecord::RecordInvalid => error
+        @validation_errors = combined_validation_errors(employee, error.record)
         false
       end
 
-      def update_employee_user(employee)
-        names = employee_user_params.compact_blank
-        return if names.blank?
+      def create_employee(employee)
+        Employee.transaction do
+          employee.assign_attributes(create_employee_params)
+          employee.user = employee_user_for_create
+          employee.user.save!
+          employee.save!
+        end
 
-        employee.user.update!(names)
+        true
+      rescue ActiveRecord::RecordInvalid => error
+        @validation_errors = combined_validation_errors(employee, employee.user, error.record)
+        false
+      end
+
+      def employee_user_for_create
+        user_attributes = employee_user_params
+        user = User.find_or_initialize_by(email: user_attributes[:email])
+        user.assign_attributes(user_attributes.merge(role: :employee))
+        user.password = SecureRandom.hex(24) if user.new_record?
+        user
+      end
+
+      def update_employee_user(employee)
+        user_attributes = employee_user_params
+        return if user_attributes.empty?
+
+        employee.user.update!(user_attributes)
+      end
+
+      def validation_errors(employee)
+        @validation_errors.presence || employee.errors.to_hash
+      end
+
+      def combined_validation_errors(*records)
+        records.compact.uniq.each_with_object({}) do |record, errors|
+          record.errors.to_hash.each do |attribute, messages|
+            errors[attribute] ||= []
+            errors[attribute].concat(messages)
+          end
+        end
       end
 
       def filtered_employees

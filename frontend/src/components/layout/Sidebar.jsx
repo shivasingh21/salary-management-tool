@@ -35,7 +35,7 @@ function Sidebar() {
           width: drawerWidth,
           borderRight: "1px solid",
           borderColor: "divider",
-          bgcolor: "#101828",
+          bgcolor: "#101083ff",
           color: "white"
         }
       }}

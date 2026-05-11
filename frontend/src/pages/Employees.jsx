@@ -17,10 +17,11 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
+import TableSortLabel from "@mui/material/TableSortLabel";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { deleteEmployee, listEmployees } from "../api/employees.js";
 import { listCountries, listDepartments, listJobTitles } from "../api/lookups.js";
@@ -45,6 +46,17 @@ const salaryRanges = [
   { value: "200000+", label: "$200,000+" }
 ];
 
+const employeeColumns = [
+  { key: "id", label: "ID", width: "6.28%", value: (employee) => Number(employee.id || 0), type: "number" },
+  { key: "name", label: "Name", width: "16.28%", value: (employee) => employee.full_name || "" },
+  { key: "joining_date", label: "Date of Joining", width: "14.28%", value: (employee) => employee.joining_date || "" },
+  { key: "job_title", label: "Job Title", width: "20.28%", value: (employee) => employee.job_title?.name || "" },
+  { key: "country", label: "Country", width: "14.28%", value: (employee) => employee.country?.name || "" },
+  { key: "salary", label: "Salary", width: "14.28%", value: (employee) => Number(employee.salary || 0), type: "number" }
+];
+
+const headerCellSx = { fontWeight: 700, textDecoration: "underline" };
+
 function isPageReload() {
   const navigation = window.performance?.getEntriesByType?.("navigation")?.[0];
   return navigation?.type === "reload";
@@ -60,7 +72,8 @@ function Employees() {
   const [lookups, setLookups] = useState({ departments: [], jobTitles: [], countries: [] });
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [actionLocked, setActionLocked] = useState(false);
+  const [orderBy, setOrderBy] = useState("id");
+  const [order, setOrder] = useState("desc");
   const [flashError, setFlashError] = useState("");
   const [error, setError] = useState("");
   const location = useLocation();
@@ -109,6 +122,23 @@ function Employees() {
       .catch(() => setError("Unable to load filter options."));
   }, []);
 
+  const sortedEmployees = useMemo(() => {
+    const direction = order === "asc" ? 1 : -1;
+    const column = employeeColumns.find((currentColumn) => currentColumn.key === orderBy);
+    if (!column) return employees;
+
+    return [...employees].sort((first, second) => {
+      const firstValue = column.value(first);
+      const secondValue = column.value(second);
+
+      if (column.type === "number") {
+        return (Number(firstValue || 0) - Number(secondValue || 0)) * direction;
+      }
+
+      return String(firstValue).localeCompare(String(secondValue)) * direction;
+    });
+  }, [employees, order, orderBy]);
+
   async function handleDelete() {
     if (!employeeToDelete) return;
 
@@ -140,14 +170,21 @@ function Employees() {
     setFilterAnchor(null);
   }
 
+  function handleSort(columnKey) {
+    const nextOrder = orderBy === columnKey && order === "asc" ? "desc" : "asc";
+
+    setOrderBy(columnKey);
+    setOrder(nextOrder);
+  }
+
   function statusDotColor(status) {
     if (status === "active") return "#16a34a";
-    if (status === "onboarded") return "#eab308";
+    if (status === "onboarding") return "#eab308";
     return "#98a2b3";
   }
 
   function statusLabel(status) {
-    if (status === "onboarded") return "Onboarding";
+    if (status === "onboarding") return "Onboarding";
     if (status === "inactive") return "Inactive";
     return "Active";
   }
@@ -174,7 +211,7 @@ function Employees() {
               to="/employees/new"
               variant="contained"
               startIcon={<AddIcon />}
-              sx={{ bgcolor: "#101828", "&:hover": { bgcolor: "#1d2939" } }}
+              sx={{ bgcolor: "#101083ff", "&:hover": { bgcolor: "#475467" } }}
             >
               New employee
             </Button>
@@ -189,17 +226,22 @@ function Employees() {
         <Table sx={{ tableLayout: "fixed" }}>
           <TableHead>
             <TableRow>
-              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "6.28%" }}>ID</TableCell>
-              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "16.28%" }}>Name</TableCell>
-              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "14.28%" }}>Date of Joining</TableCell>
-              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "20.28%" }}>Job Title</TableCell>
-              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "14.28%" }}>Country</TableCell>
-              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "14.28%" }}>Salary</TableCell>
-              <TableCell align="left" sx={{ fontWeight: 700, textDecoration: "underline", width: "14.28%" }}>Actions</TableCell>
+              {employeeColumns.map((column) => (
+                <TableCell key={column.key} align="left" sx={{ ...headerCellSx, width: column.width }}>
+                  <TableSortLabel
+                    active={orderBy === column.key}
+                    direction={orderBy === column.key ? order : "asc"}
+                    onClick={() => handleSort(column.key)}
+                  >
+                    {column.label}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
+              <TableCell align="left" sx={{ ...headerCellSx, width: "14.28%" }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {employees.map((employee, index) => (
+            {sortedEmployees.map((employee, index) => (
               <TableRow key={employee.id} hover sx={{ bgcolor: index % 2 === 0 ? "background.paper" : "rgba(16, 24, 40, 0.04)" }}>
                 <TableCell>{employee.id}</TableCell>
                 <TableCell>
@@ -235,8 +277,6 @@ function Employees() {
                       component={RouterLink}
                       to={`/employees/${employee.id}`}
                       color="primary"
-                      disabled={actionLocked}
-                      onClick={() => setActionLocked(true)}
                     >
                       <VisibilityIcon />
                     </IconButton>
@@ -245,10 +285,8 @@ function Employees() {
                     <IconButton
                       component={RouterLink}
                       to={`/employees/${employee.id}/edit`}
-                      disabled={actionLocked}
-                      onClick={() => setActionLocked(true)}
                     >
-                      <EditIcon />
+                      <EditIcon sx={{ color: "#101083ff" }} />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Delete employee">
@@ -316,7 +354,7 @@ function Employees() {
           </TextField>
           <TextField select label="Status" name="status" value={draftFilters.status} onChange={handleFilterChange}>
             <MenuItem value="">All statuses</MenuItem>
-            <MenuItem value="onboarded">Onboarding</MenuItem>
+            <MenuItem value="onboarding">Onboarding</MenuItem>
             <MenuItem value="active">Active</MenuItem>
             <MenuItem value="inactive">Inactive</MenuItem>
           </TextField>
