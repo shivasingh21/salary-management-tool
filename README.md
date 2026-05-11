@@ -108,6 +108,26 @@ npm run dev
 
 The frontend runs at `http://localhost:3000`. Vite proxies `/api` requests to the Rails API at `http://localhost:3001`.
 
+# OpenAPI Documentation
+
+Swagger UI is mounted at `/api-docs`.
+
+Generate the OpenAPI document with:
+
+```sh
+bundle exec rails rswag:specs:swaggerize
+```
+
+Authentication flow:
+
+1. Run `POST /api/v1/auth/sign_in` with HR credentials.
+2. The API stores an HttpOnly JWT cookie for the browser.
+3. Swagger UI also stores the returned JWT in local browser storage when it can.
+4. If you are already signed in through the frontend app, Swagger UI can reuse
+   the API cookie and call protected endpoints without manually authorizing.
+5. Protected requests automatically authenticate with the cookie or
+   `Authorization: Bearer <token>`.
+
 ## Environment Configuration
 
 Development and test environments use local defaults where possible.

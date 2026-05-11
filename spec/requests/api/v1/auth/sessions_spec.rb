@@ -14,6 +14,7 @@ RSpec.describe "Api::V1::Auth::Sessions", type: :request do
       expect(response.headers["Authorization"]).to start_with("Bearer ")
       expect(response.parsed_body.dig("user", "role")).to eq("hr")
       expect(response.parsed_body["token"]).to be_present
+      expect(response.cookies["auth_token"]).to be_present
       expect(user.reload.last_sign_in_at).to be_present
     end
 

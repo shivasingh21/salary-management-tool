@@ -2,6 +2,8 @@ module Api
   module V1
     module Auth
       class SessionsController < Api::V1::BaseController
+        AUTH_COOKIE_NAME = :auth_token
+
         before_action :authenticate_user!, only: :destroy
 
         def create
@@ -12,6 +14,7 @@ module Api
 
           token, = Warden::JWTAuth::UserEncoder.new.call(user, :user, nil)
           user.update!(last_sign_in_at: Time.current)
+          set_auth_cookie(token)
 
           response.set_header("Authorization", "Bearer #{token}")
           render json: { user: user_response(user), token: token }, status: :ok
@@ -19,6 +22,7 @@ module Api
 
         def destroy
           current_user.update!(jti: SecureRandom.uuid)
+          clear_auth_cookie
 
           render json: { message: "Signed out successfully" }, status: :ok
         end
@@ -27,6 +31,21 @@ module Api
 
         def sign_in_params
           params.fetch(:user, params).permit(:email, :password)
+        end
+
+        def set_auth_cookie(token)
+          cookies.encrypted[AUTH_COOKIE_NAME] = {
+            value: token,
+            httponly: true,
+            same_site: :lax,
+            secure: Rails.env.production?,
+            expires: 1.day.from_now,
+            path: "/"
+          }
+        end
+
+        def clear_auth_cookie
+          cookies.delete(AUTH_COOKIE_NAME, path: "/")
         end
 
         def user_response(user)
