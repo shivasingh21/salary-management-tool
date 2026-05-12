@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
@@ -81,6 +82,7 @@ function LookupIndex({ resource }) {
   const [order, setOrder] = useState("asc");
   const [actionLocked, setActionLocked] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [deleteRecord, setDeleteRecord] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const headerCellSx = { fontWeight: 700, textDecoration: "underline", textAlign: "left" };
 
@@ -107,12 +109,26 @@ function LookupIndex({ resource }) {
     setError("");
   }, [resource]);
 
-  async function handleDelete(record) {
+  function openDeleteDialog(record) {
     setError("");
-    setDeletingId(record.id);
+    setDeleteRecord(record);
+    setActionLocked(true);
+  }
+
+  function closeDeleteDialog() {
+    setDeleteRecord(null);
+    setActionLocked(false);
+  }
+
+  async function handleDelete() {
+    if (!deleteRecord) return;
+
+    setError("");
+    setDeletingId(deleteRecord.id);
 
     try {
-      await config.delete(record.id);
+      await config.delete(deleteRecord.id);
+      closeDeleteDialog();
       loadRecords();
     } catch (requestError) {
       setError(requestError.response?.data?.error || `Unable to delete ${config.singular.toLowerCase()}.`);
@@ -255,7 +271,7 @@ function LookupIndex({ resource }) {
                         </IconButton>
                       </Tooltip>
                       <Tooltip title={`Delete ${config.singular.toLowerCase()}`}>
-                        <IconButton color="error" onClick={() => handleDelete(record)} disabled={actionLocked || deletingId === record.id}>
+                        <IconButton color="error" onClick={() => openDeleteDialog(record)} disabled={actionLocked || deletingId === record.id}>
                           <DeleteOutlineIcon />
                         </IconButton>
                       </Tooltip>
@@ -339,6 +355,21 @@ function LookupIndex({ resource }) {
             </Button>
           </DialogActions>
         </Box>
+      </Dialog>
+
+      <Dialog open={Boolean(deleteRecord)} onClose={deletingId ? undefined : closeDeleteDialog} fullWidth maxWidth="xs">
+        <DialogTitle>Delete {config.singular.toLowerCase()}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete {deleteRecord?.name}? Once deleted, this action will be irreversible.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} disabled={Boolean(deletingId)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={handleDelete} disabled={Boolean(deletingId)}>
+            {deletingId ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );
